@@ -16,6 +16,7 @@ Polling, not SSE: through the Cloudflare tunnel an event stream was held in 128 
 """
 import base64
 import collections
+import gzip
 import hmac
 import json
 import os
@@ -125,15 +126,20 @@ def make_handler(sim, tok, brain):
     files = {"/": (ROOT / "viewer" / "index.html", "text/html; charset=utf-8"),
              "/curves.png": (ROOT / "reports" / "001" / "learning_curves.png", "image/png")}
 
+    brain_gz = gzip.compress(brain, 6)
+
     class H(BaseHTTPRequestHandler):
         protocol_version = "HTTP/1.1"
 
         def log_message(self, *a):
             pass
 
-        def reply(self, body, ctype, cache="no-store"):
+        def reply(self, body, ctype, cache="no-store", gz=None):
             self.send_response(200)
             self.send_header("Content-Type", ctype)
+            if gz and "gzip" in self.headers.get("Accept-Encoding", ""):
+                body = gz
+                self.send_header("Content-Encoding", "gzip")
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Cache-Control", cache)
             self.end_headers()
@@ -157,7 +163,7 @@ def make_handler(sim, tok, brain):
                                history_add=[h for h in sim.history if h[0] > hist_since])
                 return self.reply(json.dumps(msg, separators=(",", ":")).encode(), "application/json")
             if u.path == "/brain":
-                return self.reply(brain, "application/json", "private, max-age=3600")
+                return self.reply(brain, "application/json", "private, max-age=3600", brain_gz)
             if u.path in files and files[u.path][0].exists():
                 return self.reply(files[u.path][0].read_bytes(), files[u.path][1])
             self.send_error(404)

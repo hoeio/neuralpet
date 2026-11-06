@@ -175,7 +175,7 @@ async function buildBrain() {
   }
   const N = pts.length, pos = new Float32Array(N * 3), size = new Float32Array(N), base = new Float32Array(N), grp = new Float32Array(N);
   const gid = { pn: 0, kc: 1, mbon: 2, dan: 3, apl: 4 };
-  pts.forEach(([k, p], i) => { pos.set(p, i * 3); size[i] = style[k][0] * (shapes ? 0.7 : 1); base[i] = style[k][1]; grp[i] = gid[k]; });
+  pts.forEach(([k, p], i) => { pos.set(p, i * 3); size[i] = style[k][0] * (shapes ? 0.7 : 1); base[i] = style[k][1] * (shapes ? 0.45 : 1); grp[i] = gid[k]; });
   const geo = new THREE.BufferGeometry();
   geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
   geo.setAttribute("aSize", new THREE.BufferAttribute(size, 1));
@@ -188,7 +188,7 @@ async function buildBrain() {
   ctl.target.copy(bs.center);
   cam.position.copy(bs.center).add(new THREE.Vector3(-0.9, 0.35, 1).normalize().multiplyScalar(bs.radius * 2.6));
   const mat = new THREE.ShaderMaterial({
-    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    transparent: true, depthWrite: false, blending: THREE.NormalBlending,
     uniforms: { cS: { value: new THREE.Color(css("--structure")) }, cA: { value: new THREE.Color(css("--activity")) },
                 cD: { value: new THREE.Color(css("--dopamine")) }, scale: { value: 900 * r.getPixelRatio() } },
     vertexShader: `attribute float aSize, aBase, aGlow, aGrp; varying float vGlow, vBase, vGrp;
@@ -201,7 +201,7 @@ async function buildBrain() {
         float soft = smoothstep(0.25, 0.0, r);
         vec3 hot = (vGrp > 2.5 && vGrp < 3.5) ? cD : cA;
         vec3 col = mix(cS, hot, clamp(vGlow,0.0,1.0));
-        gl_FragColor = vec4(col, soft * (vBase + 0.45*vGlow)); }` });
+        gl_FragColor = vec4(col, soft * vBase * (1.0 + 2.0*vGlow)); }` });
   scene.add(new THREE.Points(geo, mat));
 
   // PN->KC lines for connections carrying signal this step (active PN onto a KC that turned on)

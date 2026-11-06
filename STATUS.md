@@ -71,6 +71,5 @@
    it (URL in `.tunnel.log`; append `/?t=<token>`). Neither survives a reboot; restart commands are
    in docs/TUNNEL.md. The page polls `/state` (SSE was buffered by the tunnel). The pet itself is
    still mostly starving (energy ≈ 0), as found in 002; that is the model, not the viewer.
-5. Neuron shapes: `flywire_synapses_783.feather` (9.5 GB) downloading at ~1 MB/s (started
-   2026-11-06 ~16:55). When done: write `scripts/extract_shapes.py` → `data/mb/shapes.npz`
-   (`{group}_owner`, `{group}_xyz` in nm), restart the viewer; it picks them up automatically.
+5. Neuron shapes: done. `scripts/extract_shapes.py` (7 s) samples synapse positions per neuron from
+   `flywire_synapses_783.feather` into gitignored `data/mb/shapes.npz` (~71k points); viewer uses them.

@@ -33,3 +33,8 @@ All FlyWire-derived data lives in gitignored `data/`. Fetch: `uv run python scri
   melanogaster. Cell 174:730–743.e22. doi:10.1016/j.cell.2018.06.019
 - Synapse detection / NT prediction used inside the Zenodo data: Buhmann et al. 2021 (Nat Methods),
   Heinrich et al. 2018, Eckstein, Bates et al. 2024 (Cell), as listed by the Zenodo record.
+
+## Synapse table (viewer only)
+`scripts/fetch_flywire.py --synapses` downloads `flywire_synapses_783.feather` (9.49 GB, Zenodo 10676866,
+same CC BY-NC 4.0 terms). `scripts/extract_shapes.py` samples per-neuron synapse positions into
+`data/mb/shapes.npz` for drawing. Not used by any experiment. Nothing derived is committed.
