@@ -9,6 +9,8 @@
   degree-preserving (curveball) controls. Self-check: `uv run python src/neuralpet/mb.py`.
 - `src/neuralpet/pet.py`: the pet (2D arena, energy, curiosity, state → reward DA).
 - `viewer/server.py` + `viewer/index.html`: read-only viewer on 127.0.0.1:8797, token in `.env`.
+  3D: MB point cloud at FlyWire positions with live model activity (PN, binary KC, MBON, DA), a
+  drawn 3D fly, an activity raster. No spiking model (binary units, labelled as such).
   Run `uv run python viewer/server.py`. Uses real wiring if `data/mb/mb.npz` exists, otherwise
   synthetic. Exposed through a quick tunnel at the human's request (`docs/TUNNEL.md`).
 - Experiments, one command each (`uv run python experiments/NNN/run.py`):
@@ -69,3 +71,6 @@
    it (URL in `.tunnel.log`; append `/?t=<token>`). Neither survives a reboot; restart commands are
    in docs/TUNNEL.md. The page polls `/state` (SSE was buffered by the tunnel). The pet itself is
    still mostly starving (energy ≈ 0), as found in 002; that is the model, not the viewer.
+5. Neuron shapes: `flywire_synapses_783.feather` (9.5 GB) downloading at ~1 MB/s (started
+   2026-11-06 ~16:55). When done: write `scripts/extract_shapes.py` → `data/mb/shapes.npz`
+   (`{group}_owner`, `{group}_xyz` in nm), restart the viewer; it picks them up automatically.
