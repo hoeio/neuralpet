@@ -10,3 +10,7 @@
 - 2026-11-06: **APL = kWTA** (idealised global inhibition), sparsity set explicitly (f = 0.10 or the literal fraction). APL connectome wiring not used.
 - 2026-11-06: **Pooled MBON readout + one global punishment DA** (v1). DAN/compartment wiring deferred to a later experiment.
 - 2026-11-06: **Task difficulty from a synthetic pilot** (experiments/001/pilot_synthetic.py; random synthetic circuit, no FlyWire data). η = 0.1 with 10 odours was at ceiling for every wiring, so it could not separate conditions. Chose η = 0.02 (as in Minnick 2026), 20 odours/set, independent odours, M2 at σ = 1. Done before PLAN.md was committed.
+- 2026-11-06: After 001 showed real wiring worse, ran **003** (hybrids, pre-registered) and, from exploratory checks (experiments/003/explore.py), **004** (ratio readout, pre-registered). No 001 parameter was changed.
+- 2026-11-06: Experiment 002 (pet) ran as planned. It gave a null at the floor (the pet starves most of the time). I did not retune the world after seeing this; a feasible-world experiment needs a new plan (recommended as 005).
+- 2026-11-06: Viewer port 8797 (8765 was in use by another program on this machine). Token is checked with hmac.compare_digest; empty or short tokens are rejected; `.env` is created 0600.
+- 2026-11-06: Stopping after step 2 write-up + step 3 first pass, as instructed. Next steps are listed in STATUS.md.

@@ -14,8 +14,12 @@ for where things stand.
 uv sync
 uv run python scripts/fetch_flywire.py   # downloads FlyWire FAFB v783 into data/ (CC BY-NC 4.0)
 uv run python scripts/extract_mb.py      # builds data/mb/ sub-circuit
-uv run python experiments/001/run.py     # all seeds + report
+uv run python experiments/001/run.py     # all seeds + report (also 002, 003, 004)
+uv run python viewer/server.py           # read-only viewer, prints a 127.0.0.1 URL with token
 ```
+
+Results so far: `reports/001_report.md` (real wiring did not beat matched controls) and
+`reports/002_report.md` (pet internal-state rule: null, test at floor).
 
 ## Data and citations
 

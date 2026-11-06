@@ -11,3 +11,4 @@ graft/
 *.zip
 *.gz
 .DS_Store
+.playwright-mcp/
