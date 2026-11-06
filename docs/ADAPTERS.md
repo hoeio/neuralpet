@@ -29,6 +29,22 @@ Code: `src/neuralpet/mb.py` (sections "adapters").
 8. **Choice.** For a pair of odours, the model avoids the one with lower R. Performance = AUC over test
    presentations = P(R(CS−) > R(CS+)); 0.5 = chance.
 
-## Pet adapters (step 3)
+## v2 — 2026-11-06: the pet (src/neuralpet/pet.py; used by experiment 002)
 
-To be added as v2 before any pet experiment.
+Brain = v1 items 1–4 with real wiring, f = 0.10, PN noise σ = 0.1. Everything below is designed.
+
+1. **World.** Unit square, walls reflect. 2 food and 2 toxic sources, each with its own random odour
+   (v1 item 1). Odour at a point = Σ_sources odour_s · exp(−d²/(2·0.15²)).
+2. **Valence readout.** V = (Σ_i KC_i · Σ_m W_im) / R_ref − 1, R_ref = k · mean KC out-weight at start.
+3. **Output → action.** Two antennae ±0.03 to the sides. Heading += 0.6·tanh(5·(V_left − V_right)) +
+   N(0, 0.2 + 0.8·curiosity). Speed 0.01 per step. Toxic contact also triggers a fixed 180° turn reflex.
+4. **Energy.** −0.002 per step; eating (distance < 0.04) +0.25 (capped at 1), then the food source
+   moves to a random place. Toxic contact −0.05.
+5. **Curiosity.** c ← c + 0.01·(energy − c): follows energy slowly (sated → explores more). It changes
+   exploration noise only, **not** dopamine.
+6. **State → dopamine.** Reward DA on eating = drive reduction (Keramati & Gutkin 2014), with drive
+   H(e) = (1 − e)²: DA_r = [H(e_before) − H(e_after)] / (2·0.25). Punishment DA = 1 on toxic contact.
+   **Off-switch** (control): DA_r = a constant (experiment 002: per-seed mean DA_r of the "on" run).
+7. **Plasticity.** Bidirectional, multiplicative: W_im ← W_im · (1 + η·KC_i·(DA_r − DA_p)), η = 0.05,
+   clipped to [0, 3·W_im(0)]. Form after Bennett et al. 2021 (ΔW ∝ k·(d⁺ − d⁻)); potentiation by reward
+   is a simplification (cf. Handler et al. 2019).

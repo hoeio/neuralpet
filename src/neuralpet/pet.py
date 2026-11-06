@@ -25,7 +25,7 @@ class Pet:
     W_km: np.ndarray
     glom: np.ndarray
     seed: int = 0
-    modulation: bool = True          # False = state->DA rule switched off (constant gain)
+    da_const: float | None = None    # None = state-modulated reward DA; a number = fixed reward DA (off)
     t: int = 0
     events: list = field(default_factory=list)
 
@@ -38,6 +38,7 @@ class Pet:
                         for i, k in enumerate(["food", "food", "toxic", "toxic"])]
         self.pos, self.heading = self._rand_pos(), self.rng.uniform(0, 2 * np.pi)
         self.energy, self.curiosity = 0.6, 0.5
+        self.da_rewards = []
         self.k = int(FRAC * self.W_pk.shape[1])
         self.R_ref = self.k * self.W0.sum(1).mean()                  # R of an average code
 
@@ -79,11 +80,12 @@ class Pet:
                     before = self.energy
                     self.energy = min(1.0, self.energy + FOOD_E)
                     # Keramati & Gutkin 2014: reward = drive reduction, drive H(e) = (1-e)^2,
-                    # scaled by 1/(2*FOOD_E) so eating at e=0 gives ~0.88. Off-switch: constant 0.5.
+                    # scaled by 1/(2*FOOD_E) so eating at e=0 gives ~0.88. Off-switch: constant da_const.
                     drop = (1 - before) ** 2 - (1 - self.energy) ** 2
-                    da_r += drop / (2 * FOOD_E) if self.modulation else 0.5
+                    da_r += drop / (2 * FOOD_E) if self.da_const is None else self.da_const
                     s.pos = self._rand_pos()
                     self.events.append((self.t, "eat"))
+                    self.da_rewards.append(da_r)
                 else:
                     self.energy = max(0.0, self.energy - TOXIC_E)
                     da_p += 1.0
