@@ -1,0 +1,19 @@
+## 1. Input heterogeneity, promiscuous KCs, code reliability (PN->KC only)
+real: KC total-input CV 0.45; distinct input units/KC 4.36; sigma 0.0: KCs firing for >30% of odours 0.004; sigma 0.2: KCs firing for >30% of odours 0.013; same-odour Jaccard at sigma 0.2: 0.727; same-odour Jaccard at sigma 1.0: 0.252
+shuffle: KC total-input CV 0.43; distinct input units/KC 4.38; sigma 0.0: KCs firing for >30% of odours 0.007; sigma 0.2: KCs firing for >30% of odours 0.020; same-odour Jaccard at sigma 0.2: 0.730; same-odour Jaccard at sigma 1.0: 0.255
+random: KC total-input CV 0.53; distinct input units/KC 4.02; sigma 0.0: KCs firing for >30% of odours 0.017; sigma 0.2: KCs firing for >30% of odours 0.039; same-odour Jaccard at sigma 0.2: 0.735; same-odour Jaccard at sigma 1.0: 0.278
+
+## 2. KC type: mean KC->MBON output synapses and PN input synapses (real)
+KCg-m (n=1120): MBON out 10.4, PN in 70.5
+KCab (n=799): MBON out 37.4, PN in 68.2
+KCapbp-m (n=174): MBON out 13.6, PN in 18.0
+KCapbp-ap1 (n=132): MBON out 38.4, PN in 24.9
+KCapbp-ap2 (n=160): MBON out 22.4, PN in 17.5
+KCg-d (n=148): MBON out 8.7, PN in 2.7
+KCab-p (n=61): MBON out 19.3, PN in 1.7
+
+## 3. Spread of naive pooled MBON drive R0 across odours (CV), noise-free
+PN->KC real, KC->MBON real: R0 CV = 0.142
+PN->KC real, KC->MBON shuffle: R0 CV = 0.132
+PN->KC shuffle, KC->MBON real: R0 CV = 0.048
+PN->KC shuffle, KC->MBON shuffle: R0 CV = 0.041
