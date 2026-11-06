@@ -48,3 +48,13 @@ Brain = v1 items 1–4 with real wiring, f = 0.10, PN noise σ = 0.1. Everything
 7. **Plasticity.** Bidirectional, multiplicative: W_im ← W_im · (1 + η·KC_i·(DA_r − DA_p)), η = 0.05,
    clipped to [0, 3·W_im(0)]. Form after Bennett et al. 2021 (ΔW ∝ k·(d⁺ − d⁻)); potentiation by reward
    is a simplification (cf. Handler et al. 2019).
+
+## v3 — 2026-11-06: compartment readout (experiment 005)
+
+v1, except items 5–8 are restricted to a connectome-derived compartment set:
+- P = MBONs receiving ≥ 20 synapses from any right `PPL1*` DAN (15 MBONs). The threshold was set from
+  the DAN→MBON synapse table alone, before any learning run.
+- Punishment DA depresses KC→MBON weights only onto MBONs in P (same rule, η = 0.02).
+- Choice score S = Σ_{m∈P} R_m / μ_m, with μ_m the naive mean response of MBON m to 100 fixed
+  noise-free reference odours (computed per condition before training; μ_m = 0 → MBON left out).
+- Control grouping: 15 MBONs drawn at random from all 48 (rule 6).

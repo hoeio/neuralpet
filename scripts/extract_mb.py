@@ -53,7 +53,8 @@ def main():
         return M
 
     M = {f"W_{s}{d}": mat(s, d) for s, d in [
-        ("pn", "kc"), ("kc", "mbon"), ("dan", "kc"), ("kc", "apl"), ("apl", "kc"), ("kc", "kc")]}
+        ("pn", "kc"), ("kc", "mbon"), ("dan", "kc"), ("kc", "apl"), ("apl", "kc"), ("kc", "kc"),
+        ("kc", "dan"), ("dan", "mbon")]}
 
     # glomerulus label per PN: uniglomerular 'DA1_lPN' -> 'DA1'; others keep their own cell_type id
     pt = pn_all.set_index("root_id").loc[pn_ids]
@@ -81,6 +82,8 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(OUT / "mb.npz", glom_of_pn=glom_of_pn, glom_names=glom_names.astype(str),
                         kc_type=groups["kc"].cell_type.fillna("").to_numpy().astype(str),
+                        dan_type=groups["dan"].cell_type.fillna("").to_numpy().astype(str),
+                        mbon_type=groups["mbon"].cell_type.fillna("").to_numpy().astype(str),
                         **{f"id_{k}": v for k, v in ids.items()}, **M)
     (OUT / "counts.json").write_text(json.dumps(counts, indent=1))
     print(json.dumps(counts, indent=1))

@@ -12,3 +12,4 @@ graft/
 *.gz
 .DS_Store
 .playwright-mcp/
+.viewer.log
