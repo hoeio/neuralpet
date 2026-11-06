@@ -62,11 +62,19 @@ def keep_col_degree(W, rng):
     return keep_row_degree(W.T, rng).T
 
 
+def permute_rows(W, rng):
+    """Same matrix with rows (PNs) in random order: degrees and KC-side structure kept, row identity lost."""
+    return W[rng.permutation(W.shape[0])]
+
+
 def make_wiring(cond, W_pk, W_km, rng):
     """cond: 'real' | 'random' | 'shuffle' for both layers, or a (pn_kc, kc_mbon) tuple."""
     pk, km = cond if isinstance(cond, tuple) else (cond, cond)
     f = {"real": lambda W, r: W, "random": random_bipartite, "shuffle": degree_shuffle,
-         "pn_out": keep_row_degree, "kc_in": keep_col_degree}
+         "pn_out": keep_row_degree, "kc_in": keep_col_degree,
+         "real_perm": permute_rows,
+         "pn_out_perm": lambda W, r: permute_rows(keep_row_degree(W, r), r),
+         "shuffle_perm": lambda W, r: permute_rows(degree_shuffle(W, r), r)}
     return f[pk](W_pk, rng), f[km](W_km, rng)
 
 
@@ -126,6 +134,8 @@ if __name__ == "__main__":
     assert ((R > 0).sum(1) == (W > 0).sum(1)).all() and (R > 0).sum() == (W > 0).sum()
     C = keep_col_degree(W, rng)
     assert ((C > 0).sum(0) == (W > 0).sum(0)).all() and np.allclose(np.sort(C[C > 0]), np.sort(W[W > 0]))
+    P = permute_rows(W, rng)
+    assert sorted((P > 0).sum(1)) == sorted((W > 0).sum(1)) and ((P > 0).sum(0) == (W > 0).sum(0)).all()
     kc = kc_code(rng.random((4, 30)).astype(np.float32), W, 0.1)
     assert (kc.sum(1) <= 20 + 5).all()
     assert auc([0, 0], [1, 1]) == 1 and auc([1], [1]) == 0.5

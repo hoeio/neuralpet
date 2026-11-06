@@ -1,0 +1,3 @@
+PNs with DoOR input: 95 of 149
+fraction of KC edges from those PNs: real 0.822; row-permuted mean 0.637 [2.5-97.5%: 0.550, 0.719]
+mean out-degree: live PNs 90.9, silent PNs 34.6
