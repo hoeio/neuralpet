@@ -65,7 +65,7 @@ class Sim(threading.Thread):
                     self.history.append([self.pet.t, *np.round(self.pet.learned_valence(), 4).tolist()])
                     self.history = self.history[-400:]
                 s = self.pet.state()
-                s.update(wiring=self.label, events=self.pet.events[-8:], history=self.history[-400:],
+                s.update(wiring=self.label, events=self.pet.events[-8:],
                          n_eat=sum(e == "eat" for _, e in self.pet.events),
                          n_toxic=sum(e == "toxic" for _, e in self.pet.events))
                 self.snapshot = s
@@ -77,36 +77,37 @@ def make_handler(sim, tok):
              "/curves.png": (ROOT / "reports" / "001" / "learning_curves.png", "image/png")}
 
     class H(BaseHTTPRequestHandler):
+        # Polling, not SSE: through the Cloudflare tunnel an event stream is held in 128 KiB blocks
+        # (measured 2026-11-06), so the page fetches /state a few times a second instead.
+        protocol_version = "HTTP/1.1"
+
         def log_message(self, *a):
             pass
 
+        def reply(self, body, ctype):
+            self.send_response(200)
+            self.send_header("Content-Type", ctype)
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(body)
+
         def do_GET(self):
             u = urlparse(self.path)
-            given = parse_qs(u.query).get("t", [""])[0]
+            q = parse_qs(u.query)
+            given = q.get("t", [""])[0]
             if not given or not tok or not hmac.compare_digest(given.encode(), tok.encode()):
                 return self.send_error(403)
-            if u.path == "/stream":
-                self.send_response(200)
-                self.send_header("Content-Type", "text/event-stream")
-                self.send_header("Cache-Control", "no-store")
-                self.end_headers()
+            if u.path == "/state":
                 try:
-                    while True:
-                        with sim.lock:
-                            msg = json.dumps(sim.snapshot)
-                        self.wfile.write(f"data: {msg}\n\n".encode())
-                        self.wfile.flush()
-                        time.sleep(0.1)
-                except (BrokenPipeError, ConnectionResetError):
-                    return
+                    since = int(q.get("since", ["-1"])[0])
+                except ValueError:
+                    since = -1
+                with sim.lock:   # history points newer than what the client already has
+                    msg = dict(sim.snapshot, history_add=[h for h in sim.history if h[0] > since])
+                return self.reply(json.dumps(msg).encode(), "application/json")
             if u.path in files and files[u.path][0].exists():
-                body = files[u.path][0].read_bytes()
-                self.send_response(200)
-                self.send_header("Content-Type", files[u.path][1])
-                self.send_header("Content-Length", str(len(body)))
-                self.send_header("Cache-Control", "no-store")
-                self.end_headers()
-                return self.wfile.write(body)
+                return self.reply(files[u.path][0].read_bytes(), files[u.path][1])
             self.send_error(404)
 
     return H

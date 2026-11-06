@@ -13,3 +13,4 @@ graft/
 .DS_Store
 .playwright-mcp/
 .viewer.log
+.tunnel.log

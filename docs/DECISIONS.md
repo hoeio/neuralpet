@@ -18,3 +18,5 @@
 - 2026-11-06: Compartments derived from direct DAN→MBON synapses (≥20 from PPL1). KC-input similarity between DANs and MBONs was too noisy (KC→DAN is sparse at ≥5 synapses). Names→compartment tables from memory were not used (unverified).
 - 2026-11-06: 005's exploratory contrast (grouping effect on shuffled wiring) was added to the generated table after seeing the figure. It is labelled exploratory everywhere.
 - 2026-11-06: Viewer restarted with nohup (log `.viewer.log`, gitignored). No tunnel config was read or changed beyond listing running cloudflared processes.
+- 2026-11-06: **Cloudflare (human override).** The human asked to use a Cloudflare tunnel for the viewer. I started a quick tunnel (trycloudflare, `--config /dev/null`) instead of editing the named tunnel: smallest, reversible, no account changes. Trade-off: no Cloudflare Access on quick tunnels, so the token is the only gate. Recorded in docs/TUNNEL.md.
+- 2026-11-06: **Viewer moved from SSE to polling.** The tunnel buffered the event stream in 128 KiB blocks (measured), making updates arrive in bursts or not at all. Polling `/state` is plain request/response and works through any proxy.

@@ -95,9 +95,9 @@ function drawChart(hist) {
     hist.forEach((r, j) => j ? cc.lineTo(X(r[0]), Y(r[i+1])) : cc.moveTo(X(r[0]), Y(r[i+1]))); cc.stroke();
   });
 }
-const es = new EventSource("stream?t=" + encodeURIComponent(tok));
-es.onmessage = ev => {
-  const s = JSON.parse(ev.data); if (!s.pos) return;
+let hist = [];
+function render(s) {
+  if (s.history_add && s.history_add.length) hist = hist.concat(s.history_add).slice(-400);
   document.getElementById("wiring").textContent = "Brain wiring: " + s.wiring;
   document.getElementById("e").textContent = s.energy.toFixed(2);
   document.getElementById("c").textContent = s.curiosity.toFixed(2);
@@ -105,9 +105,25 @@ es.onmessage = ev => {
   document.getElementById("cb").style.width = (100 * s.curiosity) + "%";
   document.getElementById("t").textContent = s.t;
   document.getElementById("n").textContent = s.n_eat + " / " + s.n_toxic;
-  drawWorld(s); drawChart(s.history);
-};
-es.onerror = () => document.getElementById("wiring").textContent = "stream disconnected (wrong token or server stopped)";
+  drawWorld(s); drawChart(hist);
+}
+// Poll (one request in flight at a time). An SSE stream was held in 128 KiB blocks by the tunnel.
+async function poll() {
+  for (;;) {
+    const since = hist.length ? hist[hist.length - 1][0] : -1;
+    try {
+      const r = await fetch("state?t=" + encodeURIComponent(tok) + "&since=" + since, {cache: "no-store"});
+      if (r.status === 403) { document.getElementById("wiring").textContent = "wrong or missing token"; return; }
+      const s = await r.json();
+      if (s.pos) render(s);
+    } catch (e) {
+      document.getElementById("wiring").textContent = "connection lost, retrying…";
+      await new Promise(res => setTimeout(res, 2000));
+    }
+    await new Promise(res => setTimeout(res, 150));
+  }
+}
+poll();
 </script>
 </body>
 </html>

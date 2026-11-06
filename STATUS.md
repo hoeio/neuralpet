@@ -10,7 +10,7 @@
 - `src/neuralpet/pet.py`: the pet (2D arena, energy, curiosity, state → reward DA).
 - `viewer/server.py` + `viewer/index.html`: read-only viewer on 127.0.0.1:8797, token in `.env`.
   Run `uv run python viewer/server.py`. Uses real wiring if `data/mb/mb.npz` exists, otherwise
-  synthetic. No tunnel was created (`docs/TUNNEL.md`).
+  synthetic. Exposed through a quick tunnel at the human's request (`docs/TUNNEL.md`).
 - Experiments, one command each (`uv run python experiments/NNN/run.py`):
   - 001: wiring test;
   - 002: pet state rule;
@@ -65,6 +65,7 @@
 2. Structured odours (real receptor statistics), since real PN→KC bias is towards specific glomeruli.
 3. Pet experiment 005: a world where foraging is feasible (set on the modulation-off run). Add a fix
    for getting stuck at toxic sources, and a real-vs-shuffled wiring comparison in the pet.
-4. The viewer runs detached on 127.0.0.1:8797 (log in `.viewer.log`, gitignored). It does not
-   survive a reboot. To reach it from another network, add a route in your named Cloudflare tunnel
-   (docs/TUNNEL.md); I do not touch tunnels.
+4. The viewer runs detached on 127.0.0.1:8797 (log `.viewer.log`). A quick Cloudflare tunnel exposes
+   it (URL in `.tunnel.log`; append `/?t=<token>`). Neither survives a reboot; restart commands are
+   in docs/TUNNEL.md. The page polls `/state` (SSE was buffered by the tunnel). The pet itself is
+   still mostly starving (energy ≈ 0), as found in 002; that is the model, not the viewer.
