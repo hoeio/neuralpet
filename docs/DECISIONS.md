@@ -20,3 +20,16 @@
 - 2026-11-06: Viewer restarted with nohup (log `.viewer.log`, gitignored). No tunnel config was read or changed beyond listing running cloudflared processes.
 - 2026-11-06: **Cloudflare (human override).** The human asked to use a Cloudflare tunnel for the viewer. I started a quick tunnel (trycloudflare, `--config /dev/null`) instead of editing the named tunnel: smallest, reversible, no account changes. Trade-off: no Cloudflare Access on quick tunnels, so the token is the only gate. Recorded in docs/TUNNEL.md.
 - 2026-11-06: **Viewer moved from SSE to polling.** The tunnel buffered the event stream in 128 KiB blocks (measured), making updates arrive in bursts or not at all. Polling `/state` is plain request/response and works through any proxy.
+
+## 2026-11-06: 3D creature + brain viewer
+- The viewer now shows (a) the right MB as a 3D point cloud at FlyWire v783 annotation positions, with the
+  model's per-step PN input, binary KC state, MBON drive and dopamine events drawn on it; (b) a drawn 3D
+  fly (three.js) that follows the model's position and heading; (c) a scrolling activity raster.
+- **No spiking is modelled.** KCs are binary per step (kWTA); a flash is a unit turning on, labelled so on
+  the page. A LIF variant would be a separate pre-registered experiment, not a viewer change.
+- Dopamine is one global signal in the model; drawing it on PAM (reward) and PPL1 (punishment) cells is a
+  display convention, stated on the page.
+- Positions come from `extract_mb.py` (`pos_*`, nm). They are derived FlyWire data, so they are kept in
+  gitignored `data/` and only served to the token holder at runtime.
+- Planned: synapse-sampled neuron shapes (`data/mb/shapes.npz`) once `flywire_synapses_783.feather` (9.5 GB)
+  finishes downloading; the viewer uses them automatically if present.

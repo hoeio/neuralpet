@@ -49,6 +49,7 @@ def _md5(p):
 
 
 def main():
+    """`--synapses` also fetches the 9.5 GB synapse table (only needed for the viewer's 3D neuron shapes)."""
     DATA.mkdir(parents=True, exist_ok=True)
     rec = json.load(urllib.request.urlopen(ZENODO, context=CTX))
     (DATA / "zenodo_record.json").write_text(json.dumps(rec, indent=1))
@@ -57,6 +58,9 @@ def main():
         f = files[name]
         fetch(f["links"]["self"], DATA / name, f["checksum"].removeprefix("md5:"))
     fetch(ANNOT, DATA / "neuron_annotations.tsv")
+    if "--synapses" in sys.argv:
+        f = files["flywire_synapses_783.feather"]
+        fetch(f["links"]["self"], DATA / f["key"], f["checksum"].removeprefix("md5:"))
     print("done:", sorted(p.name for p in DATA.iterdir()))
 
 

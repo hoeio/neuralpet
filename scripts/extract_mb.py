@@ -79,12 +79,16 @@ def main():
     counts["syn_threshold"] = SYN_THRESHOLD
     counts["kc_types"] = groups["kc"].cell_type.value_counts().to_dict()
 
+    # one representative point per neuron (annotation pos_*, 4x4x40 nm voxels) -> nm; for the viewer
+    pos_all = a.set_index("root_id")[["pos_x", "pos_y", "pos_z"]].astype(float) * [4, 4, 40]
+    pos = {f"pos_{k}": pos_all.loc[v].to_numpy(np.float32) for k, v in ids.items()}
+
     OUT.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(OUT / "mb.npz", glom_of_pn=glom_of_pn, glom_names=glom_names.astype(str),
                         kc_type=groups["kc"].cell_type.fillna("").to_numpy().astype(str),
                         dan_type=groups["dan"].cell_type.fillna("").to_numpy().astype(str),
                         mbon_type=groups["mbon"].cell_type.fillna("").to_numpy().astype(str),
-                        **{f"id_{k}": v for k, v in ids.items()}, **M)
+                        **{f"id_{k}": v for k, v in ids.items()}, **pos, **M)
     (OUT / "counts.json").write_text(json.dumps(counts, indent=1))
     print(json.dumps(counts, indent=1))
 

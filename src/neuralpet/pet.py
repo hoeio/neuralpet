@@ -51,7 +51,8 @@ class Pet:
         return (c[:, None] * self.odors[[s.odor for s in self.sources]]).sum(0)
 
     def kc(self, odor):
-        return mb.kc_code(mb.pn_rates(odor[None], PN_SIGMA, self.rng), self.W_pk, FRAC)[0]
+        self._pn = mb.pn_rates(odor[None], PN_SIGMA, self.rng)      # kept for the viewer
+        return mb.kc_code(self._pn, self.W_pk, FRAC)[0]
 
     def valence(self, kc):
         """Learned approach drive relative to an average code (>0 approach, <0 avoid)."""
@@ -73,6 +74,7 @@ class Pet:
         self.energy = max(0.0, self.energy - DRAIN)
         self.curiosity += 0.01 * (self.energy - self.curiosity)     # sated -> curious, hungry -> focused
         kc_here = self.kc(self.smell(self.pos))
+        pn_here = self._pn[0]
         da_r = da_p = 0.0
         for s in self.sources:
             if np.linalg.norm(s.pos - self.pos) < R_EAT:
@@ -95,6 +97,9 @@ class Pet:
             # bidirectional three-factor rule (Bennett et al. 2021 form; Handler et al. 2019)
             self.W *= (1 + ETA * kc_here * (da_r - da_p))[:, None]
             np.clip(self.W, 0, W_MAX * self.W0, out=self.W)
+        # what the brain did this step (read-only record for the viewer; no extra random draws)
+        self.last = dict(pn=pn_here, kc=kc_here, mbon=kc_here @ self.W, mbon0=kc_here @ self.W0,
+                         da_r=da_r, da_p=da_p, v_left=vl, v_right=vr)
         return da_r, da_p
 
     def learned_valence(self):

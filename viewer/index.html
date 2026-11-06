@@ -5,125 +5,470 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NeuralPet Viewer</title>
 <link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root { --bg:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --line:#e4e3df;
-          --food:#1baf7a; --toxic:#eb6834; --pet:#2a78d6; --food2:#008300; --toxic2:#e34948; }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) { --bg:#1a1a19; --ink:#f0efec; --ink2:#c3c2b7; --line:#3a3a37;
-          --food:#199e70; --toxic:#d95926; --pet:#3987e5; --food2:#008300; --toxic2:#e66767; }
+  /* Two-channel imaging palette: structure label (magenta), activity (green), dopamine (amber). */
+  :root {
+    --field: #0a0d1c;
+    --panel: #10142a;
+    --rule: #232846;
+    --ink: #e3e5f4;
+    --ink-2: #9aa0c3;
+    --structure: #b0457f;
+    --activity: #7cf2a0;
+    --dopamine: #ffb547;
+    --food: #79d7ff;
+    --toxic: #ff6a4d;
   }
-  :root[data-theme="dark"] { --bg:#1a1a19; --ink:#f0efec; --ink2:#c3c2b7; --line:#3a3a37;
-          --food:#199e70; --toxic:#d95926; --pet:#3987e5; --food2:#008300; --toxic2:#e66767; }
-  body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.4 system-ui, sans-serif; }
-  main { max-width:1100px; margin:0 auto; padding:16px; display:grid; gap:16px;
-         grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
-  @media (max-width: 760px) { main { grid-template-columns: minmax(0,1fr); } }
-  h1 { font-size:18px; margin:0; grid-column:1/-1; }
-  .note { color:var(--ink2); font-size:12px; grid-column:1/-1; }
-  canvas { width:100%; aspect-ratio:1; border:1px solid var(--line); border-radius:6px; display:block; }
-  #chart { aspect-ratio: 1.6; }
-  .bar { height:10px; background:var(--line); border-radius:5px; overflow:hidden; margin:2px 0 10px; }
-  .bar > div { height:100%; background:var(--pet); }
-  .row { display:flex; justify-content:space-between; color:var(--ink2); }
-  img { max-width:100%; border:1px solid var(--line); border-radius:6px; }
-  .legend span { margin-right:12px; color:var(--ink2); }
-  .sw { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:4px; vertical-align:-1px; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--field); color: var(--ink); }
+  body { font: 15px/1.5 "Instrument Sans", system-ui, sans-serif; font-feature-settings: "tnum"; }
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 20px 16px 32px; }
+  header { display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap; margin-bottom: 14px; }
+  h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+  #status { color: var(--ink-2); font-size: 14px; }
+  .grid { display: grid; gap: 14px; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); }
+  .stage { position: relative; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+  .stage canvas.gl { display: block; width: 100%; height: 100%; }
+  #brain { height: min(68vh, 640px); }
+  #body { height: min(68vh, 640px); display: flex; flex-direction: column; }
+  #creature { flex: 1; min-height: 260px; position: relative; }
+  .caption { position: absolute; left: 14px; bottom: 12px; right: 14px; color: var(--ink-2); font-size: 13px; pointer-events: none; }
+  .caption b { font-weight: 500; }
+  .key { display: flex; gap: 14px; flex-wrap: wrap; position: absolute; left: 14px; top: 12px; font-size: 13px; color: var(--ink-2); pointer-events: none; }
+  .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; }
+  .readout { padding: 12px 14px 14px; border-top: 1px solid var(--rule); display: grid; grid-template-columns: 1fr 1fr; gap: 6px 18px; font-size: 14px; }
+  .readout .lab { color: var(--ink-2); }
+  .meter { grid-column: 1 / -1; display: grid; grid-template-columns: 88px 1fr 42px; align-items: center; gap: 10px; }
+  .bar { height: 6px; background: var(--rule); border-radius: 3px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; width: 0; background: var(--ink); transition: width .2s linear; }
+  #valence { grid-column: 1 / -1; width: 100%; height: 70px; display: block; }
+  #rasterBox { margin-top: 14px; padding: 10px 14px 12px; }
+  .rasterHead { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; color: var(--ink-2); font-size: 13px; margin-bottom: 6px; }
+  .rasterHead strong { color: var(--ink); font-weight: 500; font-size: 14px; }
+  .rasterRow { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 10px; }
+  #rasterLabels { position: relative; font-size: 12px; color: var(--ink-2); }
+  #rasterLabels span { position: absolute; right: 0; transform: translateY(-50%); white-space: nowrap; }
+  #raster { width: 100%; height: 240px; display: block; image-rendering: pixelated; background: #05070f; border-radius: 4px; }
+  footer { margin-top: 18px; color: var(--ink-2); font-size: 13px; max-width: 78ch; }
+  footer p { margin: 0 0 6px; }
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: minmax(0, 1fr); }
+    #body { order: -1; height: auto; }
+    #creature { height: 52vh; flex: none; }
+    #brain { height: 56vh; }
+    .rasterRow { grid-template-columns: 64px minmax(0, 1fr); }
+  }
 </style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
+</script>
 </head>
 <body>
-<main>
-  <h1>NeuralPet: read-only viewer</h1>
-  <div class="note" id="wiring">connecting…</div>
-  <section>
-    <canvas id="world" width="600" height="600" aria-label="arena: pet, food and toxic sources"></canvas>
-    <div class="legend"><span><i class="sw" style="background:var(--pet)"></i>pet</span>
-      <span><i class="sw" style="background:var(--food)"></i>food</span>
-      <span><i class="sw" style="background:var(--toxic)"></i>toxic</span></div>
+<div class="wrap">
+  <header>
+    <h1>NeuralPet</h1>
+    <span id="status">Connecting to the simulation…</span>
+  </header>
+
+  <div class="grid">
+    <section class="stage" id="brain" aria-label="Mushroom body, 3D, live activity">
+      <div class="key">
+        <span><i class="dot" style="background:var(--structure)"></i>neuron, silent</span>
+        <span><i class="dot" style="background:var(--activity)"></i>active this step</span>
+        <span><i class="dot" style="background:var(--dopamine)"></i>dopamine</span>
+      </div>
+      <div class="caption" id="brainCaption">Right mushroom body. Drag to turn it.</div>
+    </section>
+
+    <section class="stage" id="body" aria-label="The creature">
+      <div id="creature">
+        <div class="key">
+          <span><i class="dot" style="background:var(--food)"></i>food</span>
+          <span><i class="dot" style="background:var(--toxic)"></i>toxic</span>
+        </div>
+        <div class="caption">Antenna tips show what each side smells like to the brain: <b style="color:var(--activity)">good</b> or <b style="color:var(--toxic)">bad</b>.</div>
+      </div>
+      <div class="readout">
+        <div class="meter"><span class="lab">Energy</span><div class="bar"><i id="eBar"></i></div><span id="e">–</span></div>
+        <div class="meter"><span class="lab">Curiosity</span><div class="bar"><i id="cBar"></i></div><span id="c">–</span></div>
+        <span class="lab">Step</span><span id="t">–</span>
+        <span class="lab">Meals / toxic contacts</span><span id="n">–</span>
+        <canvas id="valence" aria-label="Learned valence of the four source odours over time"></canvas>
+        <span class="lab" style="grid-column:1/-1;font-size:12px">Learned value of each source odour: food lines (blue) should rise, toxic lines (red) fall.</span>
+      </div>
+    </section>
+  </div>
+
+  <section class="stage" id="rasterBox" aria-label="Activity raster">
+    <div class="rasterHead">
+      <strong>Activity, last 40 seconds</strong>
+      <span>Each column is one model step (1/15 s). Brighter means more cells in that row are active.</span>
+    </div>
+    <div class="rasterRow">
+      <div id="rasterLabels"></div>
+      <canvas id="raster" width="600" height="240"></canvas>
+    </div>
   </section>
-  <section>
-    <div class="row"><span>energy</span><span id="e"></span></div><div class="bar"><div id="eb"></div></div>
-    <div class="row"><span>curiosity</span><span id="c"></span></div><div class="bar"><div id="cb"></div></div>
-    <div class="row"><span>step</span><span id="t"></span></div>
-    <div class="row"><span>food eaten / toxic contacts</span><span id="n"></span></div>
-    <h2 style="font-size:14px;margin:14px 0 4px">Learned valence of each source odour</h2>
-    <canvas id="chart" width="640" height="400" aria-label="learned valence over time"></canvas>
-    <div class="legend"><span><i class="sw" style="background:var(--food)"></i>food A</span>
-      <span><i class="sw" style="background:var(--food2)"></i>food B</span>
-      <span><i class="sw" style="background:var(--toxic)"></i>toxic A</span>
-      <span><i class="sw" style="background:var(--toxic2)"></i>toxic B</span></div>
-  </section>
-  <section style="grid-column:1/-1">
-    <h2 style="font-size:14px;margin:0 0 4px">Experiment 001 learning curves (static, from reports/001)</h2>
-    <img id="curves" alt="Experiment 001 learning curves (not generated yet)">
-  </section>
-  <div class="note">A toy model: a FlyWire mushroom-body sub-circuit with designed rules (docs/ADAPTERS.md).
-    It is not alive, conscious, or a faithful emulation.</div>
-</main>
-<script>
+
+  <footer>
+    <p><b style="color:var(--ink);font-weight:500">What is real and what is drawn.</b> Neuron positions and the PN→KC connections are FlyWire v783 data (one annotated point per neuron, or points sampled from each neuron's synapses when available). The activity is the model's: odour input rates, Kenyon cells switching on or off each step (a binary model, so a flash is a model unit turning on, not a recorded spike), output-neuron drive and dopamine events. In the model dopamine is one global signal; it is drawn on PAM cells for food and PPL1 cells for toxins. Glow fades over ~0.3 s so it can be seen.</p>
+    <p>The fly body is a drawing that follows the model's position and heading; it is not a physics simulation. This is a toy model and is not alive, conscious, or a faithful emulation (see docs/ADAPTERS.md).</p>
+  </footer>
+</div>
+
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
 const tok = new URLSearchParams(location.search).get("t") || "";
-document.getElementById("curves").src = "curves.png?t=" + encodeURIComponent(tok);
+const q = p => p + (p.includes("?") ? "&" : "?") + "t=" + encodeURIComponent(tok);
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-const W = document.getElementById("world"), wc = W.getContext("2d");
-const C = document.getElementById("chart"), cc = C.getContext("2d");
-function drawWorld(s) {
-  const n = W.width; wc.fillStyle = css("--bg"); wc.fillRect(0, 0, n, n);
-  for (const src of s.sources) {
-    const [x, y] = src.pos, col = css(src.kind === "food" ? "--food" : "--toxic");
-    const g = wc.createRadialGradient(x*n, (1-y)*n, 0, x*n, (1-y)*n, 0.3*n);
-    g.addColorStop(0, col + "55"); g.addColorStop(1, col + "00");
-    wc.fillStyle = g; wc.fillRect(0, 0, n, n);
-    wc.fillStyle = col; wc.beginPath(); wc.arc(x*n, (1-y)*n, 0.04*n, 0, 7); wc.fill();
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const $ = id => document.getElementById(id);
+const B36 = "0123456789abcdefghijklmnopqrstuvwxyz";
+const dec36 = s => Array.from(s, ch => B36.indexOf(ch) / 35 * 2);   // server quantised [0, 2]
+const bits = (b64, n) => { const raw = atob(b64), out = new Uint8Array(n);
+  for (let i = 0; i < n; i++) out[i] = (raw.charCodeAt(i >> 3) >> (7 - (i & 7))) & 1; return out; };
+
+function makeRenderer(host) {
+  const r = new THREE.WebGLRenderer({ antialias: true });
+  r.setPixelRatio(Math.min(devicePixelRatio, 2));
+  r.domElement.className = "gl";
+  r.domElement.style.position = "absolute"; r.domElement.style.inset = "0";
+  host.prepend(r.domElement);
+  const fit = (cam) => { const w = host.clientWidth, h = host.clientHeight;
+    if (r.domElement.width !== Math.floor(w * r.getPixelRatio()) || r.domElement.height !== Math.floor(h * r.getPixelRatio())) {
+      r.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); } };
+  return { r, fit };
+}
+
+/* ---------------- brain ---------------- */
+const brain = { glow: {}, n: {} };
+async function buildBrain() {
+  const res = await fetch(q("brain"));
+  if (!res.ok) throw new Error(res.status);
+  const g = await res.json();
+  const host = $("brain");
+  const { r, fit } = makeRenderer(host);
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(css("--panel"));
+  const cam = new THREE.PerspectiveCamera(40, 1, 1, 5000);
+  const ctl = new OrbitControls(cam, r.domElement);
+  ctl.enableDamping = true; ctl.autoRotate = !reduceMotion; ctl.autoRotateSpeed = 0.35;
+
+  const shapes = g.shapes;
+  const style = { kc: [2.2, 0.32], pn: [4.5, 0.6], mbon: [6, 0.75], dan: [4.5, 0.5], apl: [4, 0.4] };
+  const pts = [], owners = {};
+  for (const k of ["pn", "kc", "mbon", "dan", "apl"]) {
+    const cent = g.groups[k];
+    brain.n[k] = cent.length;
+    brain.glow[k] = new Float32Array(cent.length);
+    const xyz = shapes && shapes[k] ? shapes[k].xyz : cent;
+    const own = shapes && shapes[k] ? shapes[k].owner : cent.map((_, i) => i);
+    owners[k] = own;
+    for (let i = 0; i < xyz.length; i++) pts.push([k, xyz[i]]);
   }
-  const [px, py] = s.pos, h = s.heading;
-  wc.save(); wc.translate(px*n, (1-py)*n); wc.rotate(-h);
-  wc.fillStyle = css("--pet"); wc.beginPath(); wc.ellipse(0, 0, 12, 7, 0, 0, 7); wc.fill();
-  wc.strokeStyle = css("--ink2"); wc.lineWidth = 2; wc.beginPath();
-  wc.moveTo(10, 0); wc.lineTo(20, 6); wc.moveTo(10, 0); wc.lineTo(20, -6); wc.stroke(); wc.restore();
+  const N = pts.length, pos = new Float32Array(N * 3), size = new Float32Array(N), base = new Float32Array(N), grp = new Float32Array(N);
+  const gid = { pn: 0, kc: 1, mbon: 2, dan: 3, apl: 4 };
+  pts.forEach(([k, p], i) => { pos.set(p, i * 3); size[i] = style[k][0] * (shapes ? 0.7 : 1); base[i] = style[k][1]; grp[i] = gid[k]; });
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute("aSize", new THREE.BufferAttribute(size, 1));
+  geo.setAttribute("aBase", new THREE.BufferAttribute(base, 1));
+  geo.setAttribute("aGrp", new THREE.BufferAttribute(grp, 1));
+  const glowAttr = new THREE.BufferAttribute(new Float32Array(N), 1).setUsage(THREE.DynamicDrawUsage);
+  geo.setAttribute("aGlow", glowAttr);
+  geo.computeBoundingSphere();
+  const bs = geo.boundingSphere;
+  ctl.target.copy(bs.center);
+  cam.position.copy(bs.center).add(new THREE.Vector3(-0.9, 0.35, 1).normalize().multiplyScalar(bs.radius * 2.6));
+  const mat = new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    uniforms: { cS: { value: new THREE.Color(css("--structure")) }, cA: { value: new THREE.Color(css("--activity")) },
+                cD: { value: new THREE.Color(css("--dopamine")) }, scale: { value: 900 * r.getPixelRatio() } },
+    vertexShader: `attribute float aSize, aBase, aGlow, aGrp; varying float vGlow, vBase, vGrp;
+      uniform float scale;
+      void main(){ vGlow=aGlow; vBase=aBase; vGrp=aGrp;
+        vec4 mv = modelViewMatrix * vec4(position,1.0);
+        gl_PointSize = aSize * (1.0 + 0.7*aGlow) * scale / -mv.z; gl_Position = projectionMatrix * mv; }`,
+    fragmentShader: `uniform vec3 cS, cA, cD; varying float vGlow, vBase, vGrp;
+      void main(){ vec2 d = gl_PointCoord - 0.5; float r = dot(d,d); if (r > 0.25) discard;
+        float soft = smoothstep(0.25, 0.0, r);
+        vec3 hot = (vGrp > 2.5 && vGrp < 3.5) ? cD : cA;
+        vec3 col = mix(cS, hot, clamp(vGlow,0.0,1.0));
+        gl_FragColor = vec4(col, soft * (vBase + 0.45*vGlow)); }` });
+  scene.add(new THREE.Points(geo, mat));
+
+  // PN->KC lines for connections carrying signal this step (active PN onto a KC that turned on)
+  const MAXL = 2500, lpos = new Float32Array(MAXL * 6);
+  const lgeo = new THREE.BufferGeometry();
+  lgeo.setAttribute("position", new THREE.BufferAttribute(lpos, 3).setUsage(THREE.DynamicDrawUsage));
+  lgeo.setDrawRange(0, 0);
+  scene.add(new THREE.LineSegments(lgeo, new THREE.LineBasicMaterial({
+    color: css("--activity"), transparent: true, opacity: 0.12, blending: THREE.AdditiveBlending, depthWrite: false })));
+  const byPn = Array.from({ length: brain.n.pn }, () => []);
+  for (const [p, k] of g.pn_kc) byPn[p].push(k);
+
+  const fam = t => t.startsWith("KCg") ? "γ" : (t.startsWith("KCab") ? "αβ" : "α′β′");
+  const famOrder = ["γ", "α′β′", "αβ"];
+  brain.kcFamIdx = famOrder.map(F => g.kc_type.map((t, i) => [fam(t), i]).filter(x => x[0] === F).map(x => x[1]));
+  brain.famOrder = famOrder;
+  brain.pam = g.dan_type.map(t => t.startsWith("PAM"));
+  brain.ppl1 = g.dan_type.map(t => t.startsWith("PPL1"));
+  $("brainCaption").textContent = `Right mushroom body: ${brain.n.kc.toLocaleString()} Kenyon cells, ${brain.n.pn} olfactory input neurons, ${brain.n.mbon} output neurons, ${brain.n.dan} dopamine neurons; ${shapes ? "drawn from synapse positions" : "one point per neuron"}. Drag to turn it.`;
+
+  brain.frame = (f) => {
+    const kcOn = bits(f.kc, brain.n.kc), pn = dec36(f.pn), mb = dec36(f.mbon), G = brain.glow;
+    for (let i = 0; i < brain.n.kc; i++) if (kcOn[i]) G.kc[i] = 1;
+    for (let i = 0; i < brain.n.pn; i++) G.pn[i] = Math.min(1, pn[i] * 0.8);
+    for (let i = 0; i < brain.n.mbon; i++) G.mbon[i] = Math.min(1, mb[i] * 0.5);
+    if (f.da_r > 0) brain.pam.forEach((x, i) => { if (x) G.dan[i] = 1; });
+    if (f.da_p > 0) brain.ppl1.forEach((x, i) => { if (x) G.dan[i] = 1; });
+    let L = 0;
+    for (let p = 0; p < brain.n.pn && L < MAXL; p++) {
+      if (pn[p] < 0.5) continue;
+      const a = g.groups.pn[p];
+      for (const k of byPn[p]) { if (!kcOn[k] || L >= MAXL) continue;
+        lpos.set(a, L * 6); lpos.set(g.groups.kc[k], L * 6 + 3); L++; }
+    }
+    lgeo.attributes.position.needsUpdate = true; lgeo.setDrawRange(0, L * 2);
+    brain.lastFrame = { kcOn, pn, mb };
+  };
+
+  let last = performance.now();
+  const loop = (now) => {
+    const dt = Math.min(0.1, (now - last) / 1000); last = now;
+    const k = Math.exp(-dt / 0.3), G = brain.glow;
+    for (const key of ["kc", "dan"]) { const a = G[key]; for (let i = 0; i < a.length; i++) a[i] *= k; }
+    const ga = glowAttr.array; let j = 0;
+    for (const key of ["pn", "kc", "mbon", "dan", "apl"]) { const a = G[key], o = owners[key];
+      for (let i = 0; i < o.length; i++) ga[j++] = a[o[i]]; }
+    glowAttr.needsUpdate = true;
+    fit(cam); ctl.update(); r.render(scene, cam);
+    requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
 }
-function drawChart(hist) {
-  const w = C.width, h = C.height, p = 36; cc.fillStyle = css("--bg"); cc.fillRect(0, 0, w, h);
-  if (hist.length < 2) return;
-  const vals = hist.flatMap(r => r.slice(1)); let lo = Math.min(-0.05, ...vals), hi = Math.max(0.05, ...vals);
-  const t0 = hist[0][0], t1 = hist[hist.length-1][0];
-  const X = t => p + (w - 2*p) * (t - t0) / Math.max(1, t1 - t0), Y = v => h - p - (h - 2*p) * (v - lo) / (hi - lo);
-  cc.strokeStyle = css("--line"); cc.lineWidth = 1; cc.beginPath(); cc.moveTo(p, Y(0)); cc.lineTo(w - p, Y(0)); cc.stroke();
-  cc.fillStyle = css("--ink2"); cc.font = "12px system-ui";
-  cc.fillText(hi.toFixed(2), 2, Y(hi) + 4); cc.fillText(lo.toFixed(2), 2, Y(lo)); cc.fillText("0", 2, Y(0) + 4);
-  cc.fillText("step " + t1, w - p - 60, h - 8);
-  ["--food", "--food2", "--toxic", "--toxic2"].forEach((k, i) => {
-    cc.strokeStyle = css(k); cc.lineWidth = 2; cc.beginPath();
-    hist.forEach((r, j) => j ? cc.lineTo(X(r[0]), Y(r[i+1])) : cc.moveTo(X(r[0]), Y(r[i+1]))); cc.stroke();
+
+/* ---------------- creature ---------------- */
+const fly = {};
+function radialTexture(hex) {
+  const c = document.createElement("canvas"); c.width = c.height = 128;
+  const x = c.getContext("2d"), gr = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+  gr.addColorStop(0, hex + "55"); gr.addColorStop(0.5, hex + "1c"); gr.addColorStop(1, hex + "00");
+  x.fillStyle = gr; x.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c);
+}
+function buildFly() {
+  const g = new THREE.Group();
+  const cuticle = new THREE.MeshStandardMaterial({ color: 0x5a4c3e, roughness: 0.5, metalness: 0.1 });
+  const abdomenMat = new THREE.MeshStandardMaterial({ color: 0xa07c4c, roughness: 0.6 });
+  const band = new THREE.MeshStandardMaterial({ color: 0x3a2c22, roughness: 0.6 });
+  const eye = new THREE.MeshStandardMaterial({ color: 0xb3141f, roughness: 0.35, emissive: 0x3a0508 });
+  const leg = new THREE.MeshStandardMaterial({ color: 0x2d2622, roughness: 0.7 });
+  const ell = (rx, ry, rz, m) => { const s = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 16), m); s.scale.set(rx, ry, rz); return s; };
+  const add = (o, x, y, z) => { o.position.set(x, y, z); g.add(o); return o; };
+  add(ell(0.075, 0.07, 0.095, cuticle), 0, 0.12, 0.02);                 // thorax
+  add(ell(0.07, 0.06, 0.13, abdomenMat), 0, 0.11, -0.17);              // abdomen
+  for (let i = 0; i < 3; i++) add(ell(0.071, 0.061, 0.018, band), 0, 0.112, -0.12 - i * 0.055);
+  add(ell(0.055, 0.05, 0.045, cuticle), 0, 0.13, 0.14);                 // head
+  for (const s of [-1, 1]) add(ell(0.033, 0.04, 0.032, eye), s * 0.042, 0.135, 0.15);
+  const wShape = new THREE.Shape(); wShape.absellipse(0, 0, 0.06, 0.2, 0, Math.PI * 2);
+  const wMat = new THREE.MeshPhysicalMaterial({ color: 0xcfe3ff, transparent: true, opacity: 0.3, roughness: 0.1, side: THREE.DoubleSide, depthWrite: false });
+  for (const s of [-1, 1]) { const w = new THREE.Mesh(new THREE.ShapeGeometry(wShape), wMat);
+    w.rotation.set(-Math.PI / 2 + 0.12, 0, s * 0.22); add(w, s * 0.05, 0.19, -0.15); }
+  // legs, tripod gait: (front L, mid R, hind L) alternate with (front R, mid L, hind R)
+  fly.legs = [];
+  const seg = (len, rad) => { const m = new THREE.Mesh(new THREE.CylinderGeometry(rad, rad * 0.8, len, 6), leg); m.geometry.translate(0, -len / 2, 0); return m; };
+  [0.07, 0.0, -0.07].forEach((z, row) => {
+    for (const s of [-1, 1]) {
+      const hip = new THREE.Group(); hip.position.set(s * 0.06, 0.1, z);
+      const femur = seg(0.13, 0.009); femur.rotation.z = s * 1.05; hip.add(femur);
+      const knee = new THREE.Group(); knee.position.set(s * 0.13 * Math.sin(1.05), -0.13 * Math.cos(1.05), 0);
+      const tibia = seg(0.15, 0.007); tibia.rotation.z = -s * 0.35; knee.add(tibia); hip.add(knee);
+      hip.userData = { side: s, phase: ((row % 2) ^ (s > 0 ? 1 : 0)) ? Math.PI : 0, knee };
+      g.add(hip); fly.legs.push(hip);
+    }
   });
+  // antennae; tips coloured by the brain's valence on that side (x > 0 is the fly's left)
+  fly.tips = {};
+  for (const s of [-1, 1]) {
+    const a = seg(0.08, 0.006); a.rotation.set(-1.9, 0, -s * 0.5); add(a, s * 0.02, 0.16, 0.17);
+    const tip = new THREE.Mesh(new THREE.SphereGeometry(0.018, 12, 8), new THREE.MeshBasicMaterial({ color: 0x888888 }));
+    add(tip, s * 0.055, 0.19, 0.235); fly.tips[s > 0 ? "left" : "right"] = tip;
+  }
+  g.scale.setScalar(1.3);
+  return g;
 }
+function buildCreature() {
+  const host = $("creature");
+  const { r, fit } = makeRenderer(host);
+  r.shadowMap.enabled = true;
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0e1226);
+  scene.fog = new THREE.Fog(0x0e1226, 9, 22);
+  const cam = new THREE.PerspectiveCamera(42, 1, 0.05, 100);
+  cam.position.set(0, 2.2, 3.2);
+  const ctl = new OrbitControls(cam, r.domElement);
+  ctl.enableDamping = true; ctl.maxPolarAngle = 1.45; ctl.minDistance = 0.8; ctl.maxDistance = 14; ctl.enablePan = false;
+  scene.add(new THREE.HemisphereLight(0xbfd2ff, 0x1a1408, 1.2));
+  const sun = new THREE.DirectionalLight(0xfff1dc, 2.2); sun.position.set(3, 6, 2); sun.castShadow = true;
+  sun.shadow.mapSize.set(1024, 1024); Object.assign(sun.shadow.camera, { left: -6, right: 6, top: 6, bottom: -6 });
+  scene.add(sun);
+  // arena: the model's unit square drawn as 10 x 10
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), new THREE.MeshStandardMaterial({ color: 0x1d2342, roughness: 0.95 }));
+  floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+  const grid = new THREE.GridHelper(10, 20, 0x2c3460, 0x232a4e); grid.position.y = 0.002; scene.add(grid);
+  const wall = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(10, 0.25, 10)), new THREE.LineBasicMaterial({ color: 0x3a4478 }));
+  wall.position.y = 0.125; scene.add(wall);
+
+  const body = buildFly(); body.traverse(o => { if (o.isMesh) o.castShadow = true; }); scene.add(body);
+  const W = (p) => new THREE.Vector3((p[0] - 0.5) * 10, 0, -(p[1] - 0.5) * 10);
+  const srcObjs = [], plume = { food: radialTexture(css("--food")), toxic: radialTexture(css("--toxic")) }, pulses = [];
+  fly.sources = (list) => {
+    while (srcObjs.length < list.length) {
+      const kind = list[srcObjs.length].kind, col = new THREE.Color(css(kind === "food" ? "--food" : "--toxic"));
+      const grp = new THREE.Group();
+      const disc = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 3.6), new THREE.MeshBasicMaterial({ map: plume[kind], transparent: true, depthWrite: false }));
+      disc.rotation.x = -Math.PI / 2; disc.position.y = 0.004; grp.add(disc);
+      const geo = kind === "food" ? new THREE.SphereGeometry(0.22, 24, 16) : new THREE.IcosahedronGeometry(0.24, 0);
+      const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: 0.45, roughness: 0.4, flatShading: kind !== "food" }));
+      m.position.y = 0.24; m.castShadow = true; grp.add(m);
+      const light = new THREE.PointLight(col, 3, 3, 1); light.position.y = 0.4; grp.add(light);
+      scene.add(grp); srcObjs.push(grp);
+    }
+    list.forEach((s, i) => srcObjs[i].position.copy(W(s.pos)));
+  };
+  const pulse = (kind) => {
+    const col = new THREE.Color(css(kind === "eat" ? "--food" : "--toxic"));
+    const ring = new THREE.Mesh(new THREE.RingGeometry(0.2, 0.26, 40), new THREE.MeshBasicMaterial({ color: col, transparent: true, side: THREE.DoubleSide }));
+    ring.rotation.x = -Math.PI / 2; ring.position.copy(body.position).setY(0.01); scene.add(ring); pulses.push({ ring, t: 0 });
+  };
+
+  const target = { p: new THREE.Vector3(), h: 0 }, cur = { p: new THREE.Vector3(), h: 0 };
+  const grey = new THREE.Color(0x888888), good = new THREE.Color(css("--activity")), bad = new THREE.Color(css("--toxic"));
+  let gaitPhase = 0, first = true;
+  fly.frame = (f) => {
+    // model heading θ points along (cos θ, sin θ); the drawn fly faces local +z
+    target.p.copy(W(f.pos)); target.h = Math.atan2(Math.cos(f.heading), -Math.sin(f.heading));
+    if (first) { cur.p.copy(target.p); cur.h = target.h; first = false; cam.position.add(cur.p); ctl.target.copy(cur.p); }
+    const [vl, vr] = f.v || [0, 0];
+    for (const [side, val] of [["left", vl], ["right", vr]])
+      fly.tips[side].material.color.copy(grey).lerp(val >= 0 ? good : bad, Math.min(1, Math.abs(val) * 6));
+    for (const e of f.events || []) pulse(e);
+  };
+
+  let last = performance.now();
+  const loop = (now) => {
+    const dt = Math.min(0.1, (now - last) / 1000); last = now;
+    const before = cur.p.clone();
+    cur.p.lerp(target.p, 1 - Math.exp(-dt * 10));
+    let dh = target.h - cur.h; dh = Math.atan2(Math.sin(dh), Math.cos(dh)); cur.h += dh * (1 - Math.exp(-dt * 10));
+    body.position.copy(cur.p); body.rotation.y = cur.h;
+    gaitPhase += before.distanceTo(cur.p) * 28 + Math.abs(dh) * dt * 20;
+    for (const L of fly.legs) { const { side, phase, knee } = L.userData;
+      L.rotation.y = side * 0.45 * Math.sin(gaitPhase + phase); knee.rotation.z = side * Math.max(0, Math.cos(gaitPhase + phase)) * 0.35; }
+    const delta = cur.p.clone().sub(ctl.target); ctl.target.add(delta); cam.position.add(delta);   // camera follows
+    for (let i = pulses.length - 1; i >= 0; i--) { const P = pulses[i]; P.t += dt;
+      P.ring.scale.setScalar(1 + P.t * 6); P.ring.material.opacity = Math.max(0, 1 - P.t / 0.9);
+      if (P.t > 0.9) { scene.remove(P.ring); pulses.splice(i, 1); } }
+    fit(cam); ctl.update(); r.render(scene, cam);
+    requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
+}
+
+/* ---------------- raster ---------------- */
+const raster = {};
+function buildRaster() {
+  const c = $("raster"), x = c.getContext("2d"), H = c.height, GAP = 2;
+  const names = [["Input (PN)", 34], ...brain.famOrder.map(F => [`${F} KCs`, 0]), ["Output (MBON)", 30], ["Dopamine", 10]];
+  const kcRows = H - 34 - 30 - 10 - GAP * (names.length - 1);
+  brain.kcFamIdx.forEach((idx, i) => names[i + 1][1] = Math.max(8, Math.round(kcRows * idx.length / brain.n.kc)));
+  let y = 0; raster.bands = names.map(([name, h]) => { const b = { name, y, h }; y += h + GAP; return b; });
+  const lab = $("rasterLabels");
+  raster.bands.forEach(b => { const s = document.createElement("span"); s.textContent = b.name;
+    s.style.top = ((b.y + b.h / 2) / H * 100) + "%"; lab.append(s); });
+  x.fillStyle = "#05070f"; x.fillRect(0, 0, c.width, H);
+  const rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  const A = rgb(css("--activity")), D = rgb(css("--dopamine")), T = rgb(css("--toxic"));
+  const col = x.createImageData(1, H), d = col.data;
+  const put = (yy, v, C) => { const o = yy * 4, a = Math.min(1, Math.max(0, v));
+    d[o] = 5 + C[0] * a; d[o + 1] = 7 + C[1] * a; d[o + 2] = 15 + C[2] * a; d[o + 3] = 255; };
+  const fill = (b, n, val) => { for (let r = 0; r < b.h; r++) {
+    const lo = Math.floor(r * n / b.h), hi = Math.max(lo + 1, Math.floor((r + 1) * n / b.h));
+    let s = 0; for (let i = lo; i < hi; i++) s += val(i); put(b.y + r, s / (hi - lo), A); } };
+  raster.frame = (f) => {
+    const { kcOn, pn, mb } = brain.lastFrame;
+    x.drawImage(c, -1, 0);                              // scroll left one column per step
+    for (let yy = 0; yy < H; yy++) put(yy, 0, A);
+    fill(raster.bands[0], pn.length, i => pn[i] * 0.8);
+    brain.kcFamIdx.forEach((idx, j) => fill(raster.bands[j + 1], idx.length, i => kcOn[idx[i]] * 3));
+    fill(raster.bands[4], mb.length, i => mb[i] * 0.5);
+    const db = raster.bands[5];
+    if (f.da_r > 0 || f.da_p > 0) for (let r = 0; r < db.h; r++) put(db.y + r, 1, f.da_r > 0 ? D : T);
+    x.putImageData(col, c.width - 1, 0);
+  };
+}
+
+/* ---------------- readouts ---------------- */
 let hist = [];
-function render(s) {
-  if (s.history_add && s.history_add.length) hist = hist.concat(s.history_add).slice(-400);
-  document.getElementById("wiring").textContent = "Brain wiring: " + s.wiring;
-  document.getElementById("e").textContent = s.energy.toFixed(2);
-  document.getElementById("c").textContent = s.curiosity.toFixed(2);
-  document.getElementById("eb").style.width = (100 * s.energy) + "%";
-  document.getElementById("cb").style.width = (100 * s.curiosity) + "%";
-  document.getElementById("t").textContent = s.t;
-  document.getElementById("n").textContent = s.n_eat + " / " + s.n_toxic;
-  drawWorld(s); drawChart(hist);
+function drawValence() {
+  const c = $("valence"), dpr = devicePixelRatio, w = c.width = c.clientWidth * dpr, h = c.height = c.clientHeight * dpr, x = c.getContext("2d");
+  x.clearRect(0, 0, w, h); if (hist.length < 2) return;
+  const vals = hist.flatMap(r => r.slice(1)), lo = Math.min(-0.05, ...vals), hi = Math.max(0.05, ...vals);
+  const X = i => i / (hist.length - 1) * w, Y = v => h - 2 - (v - lo) / (hi - lo) * (h - 4);
+  x.strokeStyle = css("--rule"); x.lineWidth = dpr; x.beginPath(); x.moveTo(0, Y(0)); x.lineTo(w, Y(0)); x.stroke();
+  [css("--food"), css("--food"), css("--toxic"), css("--toxic")].forEach((colr, k) => {
+    x.strokeStyle = colr; x.lineWidth = 1.5 * dpr; x.setLineDash(k % 2 ? [4 * dpr, 3 * dpr] : []);
+    x.beginPath(); hist.forEach((r, i) => i ? x.lineTo(X(i), Y(r[k + 1])) : x.moveTo(X(i), Y(r[k + 1]))); x.stroke(); });
+  x.setLineDash([]);
 }
-// Poll (one request in flight at a time). An SSE stream was held in 128 KiB blocks by the tunnel.
+function readout(f, w) {
+  $("e").textContent = f.energy.toFixed(2); $("eBar").style.width = 100 * f.energy + "%";
+  $("c").textContent = f.curiosity.toFixed(2); $("cBar").style.width = 100 * f.curiosity + "%";
+  $("t").textContent = f.t.toLocaleString(); if (w) $("n").textContent = `${w.n_eat} / ${w.n_toxic}`;
+}
+
+/* ---------------- playback: poll the server, play frames at the model's own rate ---------------- */
+const queue = []; let lastT = -1, world = null, playAcc = 0, prevNow = performance.now();
 async function poll() {
   for (;;) {
-    const since = hist.length ? hist[hist.length - 1][0] : -1;
     try {
-      const r = await fetch("state?t=" + encodeURIComponent(tok) + "&since=" + since, {cache: "no-store"});
-      if (r.status === 403) { document.getElementById("wiring").textContent = "wrong or missing token"; return; }
-      const s = await r.json();
-      if (s.pos) render(s);
+      const hs = hist.length ? hist[hist.length - 1][0] : -1;
+      const r = await fetch(q(`state?since=${lastT}&hsince=${hs}`), { cache: "no-store" });
+      if (r.status === 403) { $("status").textContent = "The link is missing its access token, or the token is wrong."; return; }
+      const s = await r.json(); world = s;
+      if (s.history_add.length) { hist = hist.concat(s.history_add).slice(-400); drawValence(); }
+      for (const f of s.frames) { queue.push(f); lastT = f.t; }
+      if (queue.length > 45) queue.splice(0, queue.length - 15);      // fell behind: skip ahead
+      fly.sources(s.sources);
+      $("status").textContent = s.wiring;
     } catch (e) {
-      document.getElementById("wiring").textContent = "connection lost, retrying…";
+      $("status").textContent = "Lost contact with the simulation. Retrying every 2 seconds.";
       await new Promise(res => setTimeout(res, 2000));
     }
-    await new Promise(res => setTimeout(res, 150));
+    await new Promise(res => setTimeout(res, 200));
   }
 }
-poll();
+function play(now) {
+  playAcc += (now - prevNow) / 1000; prevNow = now;
+  while (playAcc >= 1 / 15 && queue.length) {
+    playAcc -= 1 / 15; const f = queue.shift();
+    brain.frame(f); fly.frame(f); raster.frame(f); readout(f, world);
+  }
+  if (!queue.length) playAcc = Math.min(playAcc, 1 / 15);
+  requestAnimationFrame(play);
+}
+
+buildCreature();
+buildBrain().then(() => { buildRaster(); poll(); requestAnimationFrame(play); })
+  .catch(() => { $("status").textContent = "Could not load the brain data. Check the access token in the link."; });
+addEventListener("resize", drawValence);
 </script>
 </body>
 </html>
