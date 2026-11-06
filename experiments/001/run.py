@@ -34,7 +34,8 @@ def cond_id(cond):
         return CONDS.index(cond)
     if cond[0] in CONDS and cond[1] in CONDS:
         return 10 + 3 * CONDS.index(cond[0]) + CONDS.index(cond[1])
-    every = CONDS + ["pn_out", "kc_in", "real_perm", "pn_out_perm", "shuffle_perm"]  # 007, 008
+    every = CONDS + ["pn_out", "kc_in", "real_perm", "pn_out_perm", "shuffle_perm",
+             "pn_out_perm_live", "pn_out_perm_silent"]  # 007, 008, 009
     return 100 + 10 * every.index(cond[0]) + every.index(cond[1])
 
 

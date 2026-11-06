@@ -33,3 +33,10 @@
   gitignored `data/` and only served to the token holder at runtime.
 - Planned: synapse-sampled neuron shapes (`data/mb/shapes.npz`) once `flywire_synapses_783.feather` (9.5 GB)
   finishes downloading; the viewer uses them automatically if present.
+
+## 2026-11-06: build/reproduce + experiment 008
+- "Build the whole project" read as: verify everything rebuilds and reproduces, then continue the
+  recommended research. Reproduction ran in a scratch git worktree (data/ symlinked) so committed raw
+  outputs were never overwritten.
+- 008 permutes PN rows over all 149 PNs (including silent ones). The resulting DoOR-coverage caveat was
+  found after the run (explore.py, labelled exploratory); the within-live-PN control goes to a new plan.

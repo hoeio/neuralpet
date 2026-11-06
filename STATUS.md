@@ -20,9 +20,13 @@
   - 004: ratio readout;
   - 005: connectome-derived compartment readout (PPL1→MBON ≥20 synapses) vs random grouping;
   - 006: real odours (DoOR 2.0, 60 odorants; `scripts/fetch_door.py`) vs random odours;
-  - 007: which PN→KC degree property matters (pn_out / kc_in controls).
+  - 007: which PN→KC degree property matters (pn_out / kc_in controls);
+  - 008: does the real PN ↔ out-degree pairing matter (PN-row-permuted controls);
+  - 009: the same permutation only within DoOR-input PNs / only within silent PNs.
   Each has a PLAN.md committed before running. Reports: `reports/001_report.md` (001+003+004),
-  `reports/002_report.md`, `reports/005_report.md`, `reports/006_report.md`, `reports/007_report.md`.
+  `reports/002_report.md`, `reports/005_report.md`, `reports/006_report.md`, `reports/007_report.md`, `reports/008_report.md`, `reports/009_report.md`.
+- Reproducibility (2026-11-06): all of 001–007 rerun from a clean worktree; every runs.csv, table and
+  figure is byte-identical (only wall_s differs). Total ~3 min.
 - Docs: `docs/ADAPTERS.md` (all designed rules; v1 model, v2 pet), `LITERATURE.md`, `DATA.md`,
   `DECISIONS.md`, `OPEN_QUESTIONS.md`, `TUNNEL.md`.
 
@@ -53,15 +57,21 @@
   odours (−0.033, −0.036): a crossover. KC in-degree alone does nothing. Real is still below the
   shuffle (−0.014 [−0.025, −0.004] sparse, DoOR). Exploratory: glomeruli with more KC partners
   respond more strongly and more variably in DoOR (Spearman r ≈ 0.38, p ≈ 0.01).
+- **008, pairing:** the 007 benefit needs the *real* PN ↔ out-degree pairing. With DoOR odours,
+  pn_out − pn_out_perm +0.052 [0.035, 0.072] sparse, +0.047 [0.029, 0.068] literal; shuffle − shuffle_perm
+  +0.067 / +0.041. Skew on random PNs does not help (−0.027 sparse, −0.004 literal). With random odours
+  all ≈ 0. Caveat: real puts 82% of KC edges on the 95 PNs with DoOR input, permuted 64%, so wasted edges
+  on silent PNs may explain much of it.
+- **009, within live PNs:** matching still matters. pn_out − pn_out_perm_live +0.022 [0.004, 0.040]
+  sparse, +0.031 [0.011, 0.052] literal (~40–65% of the 008 effect). Permuting silent PNs: ≈ 0 (sanity).
 - **Pet (002): null at the floor.** The energy-dependent reward DA made no detectable difference
   (mean energy −0.006 [−0.018, 0.005]). The pet starves ~75% of the time in both conditions, so the
   test was weak.
 - Speed is no issue: one 001 run takes ~0.5 s, and all 180 runs take ~13 s on 10 cores.
 
 ## Recommended next
-0. Is the PN out-degree benefit about matching high coverage to informative glomeruli? Control:
-   permute out-degree values across glomeruli. Also why real < shuffle (co-convergence control), and
-   an easier real-odour task (M1 off the cap). See reports/007_report.md.
+0. Why real < shuffle: a control that keeps KC co-convergence of glomeruli (Zheng 2022). Also an
+   easier real-odour task (M1 off the cap) and a second odour dataset to check the 007–009 effect.
 1. A degree-matched random grouping as the rule-6 control for compartments (005 follow-up). Also a
    less noisy compartment readout, pre-registered as new experiments.
 2. Structured odours (real receptor statistics), since real PN→KC bias is towards specific glomeruli.

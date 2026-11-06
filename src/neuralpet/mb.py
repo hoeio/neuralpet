@@ -62,20 +62,29 @@ def keep_col_degree(W, rng):
     return keep_row_degree(W.T, rng).T
 
 
-def permute_rows(W, rng):
-    """Same matrix with rows (PNs) in random order: degrees and KC-side structure kept, row identity lost."""
-    return W[rng.permutation(W.shape[0])]
+def permute_rows(W, rng, rows=None):
+    """Same matrix with rows (PNs) in random order: degrees and KC-side structure kept, row identity lost.
+    rows: optional index array; only those rows are permuted among themselves."""
+    rows = np.arange(W.shape[0]) if rows is None else np.asarray(rows)
+    out = W.copy()
+    out[rows] = W[rng.permutation(rows)]
+    return out
+
+
+WIRINGS = {}   # name -> f(W, rng); filled below, experiments may add entries at import time
 
 
 def make_wiring(cond, W_pk, W_km, rng):
     """cond: 'real' | 'random' | 'shuffle' for both layers, or a (pn_kc, kc_mbon) tuple."""
     pk, km = cond if isinstance(cond, tuple) else (cond, cond)
-    f = {"real": lambda W, r: W, "random": random_bipartite, "shuffle": degree_shuffle,
+    return WIRINGS[pk](W_pk, rng), WIRINGS[km](W_km, rng)
+
+
+WIRINGS.update({"real": lambda W, r: W, "random": random_bipartite, "shuffle": degree_shuffle,
          "pn_out": keep_row_degree, "kc_in": keep_col_degree,
          "real_perm": permute_rows,
          "pn_out_perm": lambda W, r: permute_rows(keep_row_degree(W, r), r),
-         "shuffle_perm": lambda W, r: permute_rows(degree_shuffle(W, r), r)}
-    return f[pk](W_pk, rng), f[km](W_km, rng)
+         "shuffle_perm": lambda W, r: permute_rows(degree_shuffle(W, r), r)})
 
 
 # ---------- adapters ----------
@@ -136,6 +145,8 @@ if __name__ == "__main__":
     assert ((C > 0).sum(0) == (W > 0).sum(0)).all() and np.allclose(np.sort(C[C > 0]), np.sort(W[W > 0]))
     P = permute_rows(W, rng)
     assert sorted((P > 0).sum(1)) == sorted((W > 0).sum(1)) and ((P > 0).sum(0) == (W > 0).sum(0)).all()
+    Q = permute_rows(W, rng, rows=np.arange(10))
+    assert (Q[10:] == W[10:]).all() and sorted(map(tuple, Q[:10])) == sorted(map(tuple, W[:10]))
     kc = kc_code(rng.random((4, 30)).astype(np.float32), W, 0.1)
     assert (kc.sum(1) <= 20 + 5).all()
     assert auc([0, 0], [1, 1]) == 1 and auc([1], [1]) == 0.5

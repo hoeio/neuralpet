@@ -18,8 +18,10 @@ uv run python experiments/001/run.py     # all seeds + report (also 002, 003, 00
 uv run python viewer/server.py           # read-only viewer, prints a 127.0.0.1 URL with token
 ```
 
-Results so far: `reports/001_report.md` (real wiring did not beat matched controls) and
-`reports/002_report.md` (pet internal-state rule: null, test at floor).
+Each experiment `experiments/NNN/` (001–009) has a PLAN.md committed before its run and one command
+that runs all seeds and writes the tables. Results: `reports/*_report.md`; summary in `STATUS.md`.
+In short: real PN→KC partners never beat a degree-preserving shuffle; the connectome's PN out-degree,
+on the right PNs, helps noise robustness for real (DoOR) odours. The pet's state rule was a null at floor.
 
 ## Data and citations
 
