@@ -58,3 +58,13 @@ v1, except items 5–8 are restricted to a connectome-derived compartment set:
 - Choice score S = Σ_{m∈P} R_m / μ_m, with μ_m the naive mean response of MBON m to 100 fixed
   noise-free reference odours (computed per condition before training; μ_m = 0 → MBON left out).
 - Control grouping: 15 MBONs drawn at random from all 48 (rule 6).
+
+## v4 — 2026-11-06: real odours (experiment 006; src/neuralpet/odors.py)
+
+Replaces v1 item 1 when `odour source = DoOR`:
+- DoOR 2.0 consensus responses (Münch & Galizia 2016), minus the receptor spontaneous rate (SFR row),
+  clipped at 0.
+- Receptors map to glomeruli via door_mappings.csv; several receptors on one glomerulus → mean.
+- Odorants with data for ≥ 60% of our 47 DoOR-covered glomeruli are kept (60 odorants). Missing → 0.
+  Glomeruli without data and multiglomerular PN units → 0.
+- One global scale (4.89) so the mean input-unit value is 0.2, as for v1.

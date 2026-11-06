@@ -61,6 +61,12 @@ not memory. Where only partly checked, it says so.
   Schlegel P et al. (2024) Nature 634:139–152, doi:10.1038/s41586-024-07686-5.
   Zheng Z et al. (2018) Cell 174:730–743.e22, doi:10.1016/j.cell.2018.06.019.
 
+## Odour data
+
+- **Münch D, Galizia CG (2016).** "DoOR 2.0 - Comprehensive Mapping of Drosophila melanogaster
+  Odorant Responses." Sci Rep 6:21841, doi:10.1038/srep21841 (verified via Crossref 2026-11-06).
+  Data: github.com/ropensci/DoOR.data, CC BY-SA 4.0. Used in experiment 006.
+
 ## Recent related
 
 - **Shiu PK et al. (2024).** Nature 634:210–219, doi:10.1038/s41586-024-07763-9. Whole-brain LIF model
