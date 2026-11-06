@@ -47,10 +47,10 @@ def degree_shuffle(W, rng):
 
 
 def make_wiring(cond, W_pk, W_km, rng):
-    if cond == "real":
-        return W_pk, W_km
-    f = {"random": random_bipartite, "shuffle": degree_shuffle}[cond]
-    return f(W_pk, rng), f(W_km, rng)
+    """cond: 'real' | 'random' | 'shuffle' for both layers, or a (pn_kc, kc_mbon) tuple."""
+    pk, km = cond if isinstance(cond, tuple) else (cond, cond)
+    f = {"real": lambda W, r: W, "random": random_bipartite, "shuffle": degree_shuffle}
+    return f[pk](W_pk, rng), f[km](W_km, rng)
 
 
 # ---------- adapters ----------

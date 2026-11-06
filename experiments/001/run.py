@@ -26,6 +26,13 @@ ETA, SIG, N_ODORS, BLOCKS, SNAP, BLOCKS_B, CRIT = 0.02, 0.2, 20, 20, 10, 10, 0.9
 TEST_SIGMAS = [0.0, 0.5, 1.0, 2.0]
 
 
+def cond_id(cond):
+    """Stable id for the wiring rng. 001 strings keep their original ids (0, 1, 2)."""
+    if isinstance(cond, str):
+        return CONDS.index(cond)
+    return 10 + 3 * CONDS.index(cond[0]) + CONDS.index(cond[1])
+
+
 def load():
     d = np.load(ROOT / "data" / "mb" / "mb.npz")
     return d["W_pnkc"], d["W_kcmbon"], d["glom_of_pn"]
@@ -58,7 +65,7 @@ def task_set(rng, glom):
 def run_one(args):
     seed, cond, sparsity, frac = args
     W_pk0, W_km0, glom = load()
-    W_pk, W_km = mb.make_wiring(cond, W_pk0, W_km0, np.random.default_rng([seed, CONDS.index(cond)]))
+    W_pk, W_km = mb.make_wiring(cond, W_pk0, W_km0, np.random.default_rng([seed, cond_id(cond)]))
     W_km = W_km.astype(np.float64).copy()
     task = np.random.default_rng([seed, 99])          # same odours/valences in every condition
     noise = np.random.default_rng([seed, 7])          # same noise stream in every condition
