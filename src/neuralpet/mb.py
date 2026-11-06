@@ -46,10 +46,27 @@ def degree_shuffle(W, rng):
     return out
 
 
+def keep_row_degree(W, rng):
+    """Each row keeps its number of edges; targets uniform without replacement; weights permuted."""
+    out = np.zeros_like(W)
+    w = rng.permutation(W[W > 0])
+    k = 0
+    for i, d in enumerate((W > 0).sum(1)):
+        out[i, rng.choice(W.shape[1], d, replace=False)] = w[k:k + d]
+        k += d
+    return out
+
+
+def keep_col_degree(W, rng):
+    """Each column keeps its number of edges (e.g. KC in-degree for W_pk)."""
+    return keep_row_degree(W.T, rng).T
+
+
 def make_wiring(cond, W_pk, W_km, rng):
     """cond: 'real' | 'random' | 'shuffle' for both layers, or a (pn_kc, kc_mbon) tuple."""
     pk, km = cond if isinstance(cond, tuple) else (cond, cond)
-    f = {"real": lambda W, r: W, "random": random_bipartite, "shuffle": degree_shuffle}
+    f = {"real": lambda W, r: W, "random": random_bipartite, "shuffle": degree_shuffle,
+         "pn_out": keep_row_degree, "kc_in": keep_col_degree}
     return f[pk](W_pk, rng), f[km](W_km, rng)
 
 
@@ -105,6 +122,10 @@ if __name__ == "__main__":
     S = degree_shuffle(W, rng)
     assert ((S > 0).sum(0) == (W > 0).sum(0)).all() and ((S > 0).sum(1) == (W > 0).sum(1)).all()
     assert (S > 0).astype(int).ravel() @ (W > 0).astype(int).ravel() < (W > 0).sum()  # actually moved
+    R = keep_row_degree(W, rng)
+    assert ((R > 0).sum(1) == (W > 0).sum(1)).all() and (R > 0).sum() == (W > 0).sum()
+    C = keep_col_degree(W, rng)
+    assert ((C > 0).sum(0) == (W > 0).sum(0)).all() and np.allclose(np.sort(C[C > 0]), np.sort(W[W > 0]))
     kc = kc_code(rng.random((4, 30)).astype(np.float32), W, 0.1)
     assert (kc.sum(1) <= 20 + 5).all()
     assert auc([0, 0], [1, 1]) == 1 and auc([1], [1]) == 0.5
