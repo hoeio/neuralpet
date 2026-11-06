@@ -45,7 +45,7 @@ def tables(df):
                                  ("kc_active_sigma0.0", "measured KC active fraction (σ=0)")]:
             lines.append(f"| {lab} | " + " | ".join(fmt(*boot_ci(d[d.wiring == c][m])) for c in CONDS) + " |")
         cens = {c: int(d[d.wiring == c].M1_censored.sum()) for c in CONDS}
-        lines.append(f"\nM1 censored (not learned by 200 trials): {cens}\n")
+        lines.append(f"\nM1 censored (not learned by 400 trials): {cens}\n")
         lines += ["| paired contrast | metric | mean diff [95% CI] | d_z |", "|---|---|---|---|"]
         p = d.pivot(index="seed", columns="wiring")
         for other in ["shuffle", "random"]:
@@ -61,14 +61,21 @@ def tables(df):
     return "\n".join(lines)
 
 
-def label_end(ax, x, y, c):
-    ax.annotate(c, (x, y), xytext=(4, 0), textcoords="offset points", color=INK2, va="center")
+def label_ends(ax, items, gap=0.035):
+    """Direct end labels, nudged apart so they never overlap. items: [(x, y, text)]."""
+    items = sorted(items, key=lambda t: t[1])
+    ys = [items[0][1]]
+    for _, y, _ in items[1:]:
+        ys.append(max(y, ys[-1] + gap))
+    for (x, _, c), y in zip(items, ys):
+        ax.annotate(c, (x, y), xytext=(4, 0), textcoords="offset points", color=INK2, va="center")
 
 
 def fig_curves(df):
     sps = list(df.sparsity.unique())
     fig, axes = plt.subplots(1, len(sps), figsize=(4.2 * len(sps), 3.2), sharey=True)
     for ax, sp in zip(np.atleast_1d(axes), sps):
+        ends = []
         for c in CONDS:
             cur = np.array([json.loads(s) for s in df[(df.sparsity == sp) & (df.wiring == c)].curve])
             x = np.arange(cur.shape[1]) * 20
@@ -76,7 +83,8 @@ def fig_curves(df):
             lo, hi = np.array([boot_ci(cur[:, j])[1:] for j in range(cur.shape[1])]).T
             ax.fill_between(x, lo, hi, color=COLOR[c], alpha=0.18, lw=0)
             ax.plot(x, m, color=COLOR[c], lw=2, label=c)
-            label_end(ax, x[-1], m[-1], c)
+            ends.append((x[-1], m[-1], c))
+        label_ends(ax, ends)
         ax.axhline(0.9, color=INK2, lw=1, ls=":")
         ax.set(title=f"{sp} KC code", xlabel="training trials (set A)", xlim=(0, 460))
     np.atleast_1d(axes)[0].set_ylabel("AUC (CS− vs CS+), σ=0.2")
@@ -90,12 +98,14 @@ def fig_noise(df):
     sps = list(df.sparsity.unique())
     fig, axes = plt.subplots(1, len(sps), figsize=(4.2 * len(sps), 3.2), sharey=True)
     for ax, sp in zip(np.atleast_1d(axes), sps):
+        ends = []
         for c in CONDS:
             d = df[(df.sparsity == sp) & (df.wiring == c)]
             st = np.array([boot_ci(d[f"auc_sigma{s}"]) for s in sig])
             ax.errorbar(sig, st[:, 0], yerr=[st[:, 0] - st[:, 1], st[:, 2] - st[:, 0]], color=COLOR[c],
                         lw=2, marker="o", ms=5, capsize=0, label=c)
-            label_end(ax, sig[-1], st[-1, 0], c)
+            ends.append((sig[-1], st[-1, 0], c))
+        label_ends(ax, ends)
         ax.set(title=f"{sp} KC code", xlabel="test noise σ", xlim=(-0.1, 2.5))
     np.atleast_1d(axes)[0].set_ylabel("AUC after 200 training trials")
     np.atleast_1d(axes)[0].legend(frameon=False, loc="lower left")

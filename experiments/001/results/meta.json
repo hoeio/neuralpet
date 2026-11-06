@@ -1,0 +1,15 @@
+{
+ "seeds": 30,
+ "fractions": {
+  "sparse": 0.1,
+  "literal": 0.5523919907585676
+ },
+ "eta": 0.02,
+ "sigma_train": 0.2,
+ "n_odors": 20,
+ "blocks": 20,
+ "snap": 10,
+ "blocks_B": 10,
+ "criterion": 0.9,
+ "wall_s": 12.8
+}

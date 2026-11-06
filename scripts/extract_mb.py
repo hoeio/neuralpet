@@ -79,7 +79,7 @@ def main():
     counts["kc_types"] = groups["kc"].cell_type.value_counts().to_dict()
 
     OUT.mkdir(parents=True, exist_ok=True)
-    np.savez_compressed(OUT / "mb.npz", glom_of_pn=glom_of_pn, glom_names=glom_names,
+    np.savez_compressed(OUT / "mb.npz", glom_of_pn=glom_of_pn, glom_names=glom_names.astype(str),
                         kc_type=groups["kc"].cell_type.fillna("").to_numpy().astype(str),
                         **{f"id_{k}": v for k, v in ids.items()}, **M)
     (OUT / "counts.json").write_text(json.dumps(counts, indent=1))

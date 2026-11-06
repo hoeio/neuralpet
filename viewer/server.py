@@ -27,11 +27,14 @@ def token():
     env = ROOT / ".env"
     for line in env.read_text().splitlines() if env.exists() else []:
         if line.startswith("NEURALPET_TOKEN="):
-            return line.split("=", 1)[1].strip()
+            val = line.split("=", 1)[1].strip()
+            if len(val) >= 16:
+                return val
     t = secrets.token_urlsafe(24)
-    with open(env, "a") as f:
+    fd = os.open(env, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+    os.fchmod(fd, 0o600)
+    with os.fdopen(fd, "a") as f:
         f.write(f"NEURALPET_TOKEN={t}\n")
-    env.chmod(0o600)
     return t
 
 
@@ -80,7 +83,7 @@ def make_handler(sim, tok):
         def do_GET(self):
             u = urlparse(self.path)
             given = parse_qs(u.query).get("t", [""])[0]
-            if not hmac.compare_digest(given.encode(), tok.encode()):
+            if not given or not tok or not hmac.compare_digest(given.encode(), tok.encode()):
                 return self.send_error(403)
             if u.path == "/stream":
                 self.send_response(200)
