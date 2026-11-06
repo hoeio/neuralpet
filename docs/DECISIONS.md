@@ -14,3 +14,7 @@
 - 2026-11-06: Experiment 002 (pet) ran as planned. It gave a null at the floor (the pet starves most of the time). I did not retune the world after seeing this; a feasible-world experiment needs a new plan (recommended as 005).
 - 2026-11-06: Viewer port 8797 (8765 was in use by another program on this machine). Token is checked with hmac.compare_digest; empty or short tokens are rejected; `.env` is created 0600.
 - 2026-11-06: Stopping after step 2 write-up + step 3 first pass, as instructed. Next steps are listed in STATUS.md.
+- 2026-11-06: Repo visibility: the human said the research will be public, so pushing to the public repo is intended. Data rules unchanged.
+- 2026-11-06: Compartments derived from direct DAN→MBON synapses (≥20 from PPL1). KC-input similarity between DANs and MBONs was too noisy (KC→DAN is sparse at ≥5 synapses). Names→compartment tables from memory were not used (unverified).
+- 2026-11-06: 005's exploratory contrast (grouping effect on shuffled wiring) was added to the generated table after seeing the figure. It is labelled exploratory everywhere.
+- 2026-11-06: Viewer restarted with nohup (log `.viewer.log`, gitignored). No tunnel config was read or changed beyond listing running cloudflared processes.

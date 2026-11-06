@@ -15,9 +15,10 @@
   - 001: wiring test;
   - 002: pet state rule;
   - 003: which layer;
-  - 004: ratio readout.
-  Each has a PLAN.md committed before running. Reports: `reports/001_report.md` (001+003+004) and
-  `reports/002_report.md`.
+  - 004: ratio readout;
+  - 005: connectome-derived compartment readout (PPL1→MBON ≥20 synapses) vs random grouping.
+  Each has a PLAN.md committed before running. Reports: `reports/001_report.md` (001+003+004),
+  `reports/002_report.md`, `reports/005_report.md`.
 - Docs: `docs/ADAPTERS.md` (all designed rules; v1 model, v2 pet), `LITERATURE.md`, `DATA.md`,
   `DECISIONS.md`, `OPEN_QUESTIONS.md`, `TUNNEL.md`.
 
@@ -32,15 +33,23 @@
     odours. With a ratio readout the gap is +27 [−3, 68] trials. Real is still never better than
     shuffle, and slightly worse on noise robustness (−0.032 [−0.041, −0.022]).
   - Random wiring is best or tied-best on learning speed and noise robustness.
+- **005, compartment readout:** still no advantage for real wiring. Real − shuffle (sparse): M1 +93
+  trials [59, 127], M2 −0.124 [−0.159, −0.090]. The connectome-derived compartment grouping did not
+  beat a size-matched random grouping with real wiring (M2 −0.006 [−0.029, 0.018]). The primary
+  readout was hard: real wiring never reached criterion in any seed. Exploratory: the grouping helps
+  *shuffled* wiring, most likely because the chosen MBONs have unusually high KC in-degree (above
+  98.5% of random groups).
 - **Pet (002): null at the floor.** The energy-dependent reward DA made no detectable difference
   (mean energy −0.006 [−0.018, 0.005]). The pet starves ~75% of the time in both conditions, so the
   test was weak.
 - Speed is no issue: one 001 run takes ~0.5 s, and all 180 runs take ~13 s on 10 cores.
 
 ## Recommended next
-1. A compartment readout using real DAN/MBON compartment groupings, against a matched random
-   grouping (rule 6). This removes the pooling artifact.
+1. A degree-matched random grouping as the rule-6 control for compartments (005 follow-up). Also a
+   less noisy compartment readout, pre-registered as new experiments.
 2. Structured odours (real receptor statistics), since real PN→KC bias is towards specific glomeruli.
 3. Pet experiment 005: a world where foraging is feasible (set on the modulation-off run). Add a fix
    for getting stuck at toxic sources, and a real-vs-shuffled wiring comparison in the pet.
-4. Human decisions: repo visibility (it is public; see `docs/OPEN_QUESTIONS.md`).
+4. The viewer runs detached on 127.0.0.1:8797 (log in `.viewer.log`, gitignored). It does not
+   survive a reboot. To reach it from another network, add a route in your named Cloudflare tunnel
+   (docs/TUNNEL.md); I do not touch tunnels.
