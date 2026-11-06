@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NeuralPet Viewer</title>
+<style>
+  :root { --bg:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --line:#e4e3df;
+          --food:#1baf7a; --toxic:#eb6834; --pet:#2a78d6; --food2:#008300; --toxic2:#e34948; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg:#1a1a19; --ink:#f0efec; --ink2:#c3c2b7; --line:#3a3a37;
+          --food:#199e70; --toxic:#d95926; --pet:#3987e5; --food2:#008300; --toxic2:#e66767; }
+  }
+  :root[data-theme="dark"] { --bg:#1a1a19; --ink:#f0efec; --ink2:#c3c2b7; --line:#3a3a37;
+          --food:#199e70; --toxic:#d95926; --pet:#3987e5; --food2:#008300; --toxic2:#e66767; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.4 system-ui, sans-serif; }
+  main { max-width:1100px; margin:0 auto; padding:16px; display:grid; gap:16px;
+         grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
+  @media (max-width: 760px) { main { grid-template-columns: minmax(0,1fr); } }
+  h1 { font-size:18px; margin:0; grid-column:1/-1; }
+  .note { color:var(--ink2); font-size:12px; grid-column:1/-1; }
+  canvas { width:100%; aspect-ratio:1; border:1px solid var(--line); border-radius:6px; display:block; }
+  #chart { aspect-ratio: 1.6; }
+  .bar { height:10px; background:var(--line); border-radius:5px; overflow:hidden; margin:2px 0 10px; }
+  .bar > div { height:100%; background:var(--pet); }
+  .row { display:flex; justify-content:space-between; color:var(--ink2); }
+  img { max-width:100%; border:1px solid var(--line); border-radius:6px; }
+  .legend span { margin-right:12px; color:var(--ink2); }
+  .sw { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:4px; vertical-align:-1px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>NeuralPet: read-only viewer</h1>
+  <div class="note" id="wiring">connecting…</div>
+  <section>
+    <canvas id="world" width="600" height="600" aria-label="arena: pet, food and toxic sources"></canvas>
+    <div class="legend"><span><i class="sw" style="background:var(--pet)"></i>pet</span>
+      <span><i class="sw" style="background:var(--food)"></i>food</span>
+      <span><i class="sw" style="background:var(--toxic)"></i>toxic</span></div>
+  </section>
+  <section>
+    <div class="row"><span>energy</span><span id="e"></span></div><div class="bar"><div id="eb"></div></div>
+    <div class="row"><span>curiosity</span><span id="c"></span></div><div class="bar"><div id="cb"></div></div>
+    <div class="row"><span>step</span><span id="t"></span></div>
+    <div class="row"><span>food eaten / toxic contacts</span><span id="n"></span></div>
+    <h2 style="font-size:14px;margin:14px 0 4px">Learned valence of each source odour</h2>
+    <canvas id="chart" width="640" height="400" aria-label="learned valence over time"></canvas>
+    <div class="legend"><span><i class="sw" style="background:var(--food)"></i>food A</span>
+      <span><i class="sw" style="background:var(--food2)"></i>food B</span>
+      <span><i class="sw" style="background:var(--toxic)"></i>toxic A</span>
+      <span><i class="sw" style="background:var(--toxic2)"></i>toxic B</span></div>
+  </section>
+  <section style="grid-column:1/-1">
+    <h2 style="font-size:14px;margin:0 0 4px">Experiment 001 learning curves (static, from reports/001)</h2>
+    <img id="curves" alt="Experiment 001 learning curves (not generated yet)">
+  </section>
+  <div class="note">A toy model: a FlyWire mushroom-body sub-circuit with designed rules (docs/ADAPTERS.md).
+    It is not alive, conscious, or a faithful emulation.</div>
+</main>
+<script>
+const tok = new URLSearchParams(location.search).get("t") || "";
+document.getElementById("curves").src = "curves.png?t=" + encodeURIComponent(tok);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const W = document.getElementById("world"), wc = W.getContext("2d");
+const C = document.getElementById("chart"), cc = C.getContext("2d");
+function drawWorld(s) {
+  const n = W.width; wc.fillStyle = css("--bg"); wc.fillRect(0, 0, n, n);
+  for (const src of s.sources) {
+    const [x, y] = src.pos, col = css(src.kind === "food" ? "--food" : "--toxic");
+    const g = wc.createRadialGradient(x*n, (1-y)*n, 0, x*n, (1-y)*n, 0.3*n);
+    g.addColorStop(0, col + "55"); g.addColorStop(1, col + "00");
+    wc.fillStyle = g; wc.fillRect(0, 0, n, n);
+    wc.fillStyle = col; wc.beginPath(); wc.arc(x*n, (1-y)*n, 0.04*n, 0, 7); wc.fill();
+  }
+  const [px, py] = s.pos, h = s.heading;
+  wc.save(); wc.translate(px*n, (1-py)*n); wc.rotate(-h);
+  wc.fillStyle = css("--pet"); wc.beginPath(); wc.ellipse(0, 0, 12, 7, 0, 0, 7); wc.fill();
+  wc.strokeStyle = css("--ink2"); wc.lineWidth = 2; wc.beginPath();
+  wc.moveTo(10, 0); wc.lineTo(20, 6); wc.moveTo(10, 0); wc.lineTo(20, -6); wc.stroke(); wc.restore();
+}
+function drawChart(hist) {
+  const w = C.width, h = C.height, p = 36; cc.fillStyle = css("--bg"); cc.fillRect(0, 0, w, h);
+  if (hist.length < 2) return;
+  const vals = hist.flatMap(r => r.slice(1)); let lo = Math.min(-0.05, ...vals), hi = Math.max(0.05, ...vals);
+  const t0 = hist[0][0], t1 = hist[hist.length-1][0];
+  const X = t => p + (w - 2*p) * (t - t0) / Math.max(1, t1 - t0), Y = v => h - p - (h - 2*p) * (v - lo) / (hi - lo);
+  cc.strokeStyle = css("--line"); cc.lineWidth = 1; cc.beginPath(); cc.moveTo(p, Y(0)); cc.lineTo(w - p, Y(0)); cc.stroke();
+  cc.fillStyle = css("--ink2"); cc.font = "12px system-ui";
+  cc.fillText(hi.toFixed(2), 2, Y(hi) + 4); cc.fillText(lo.toFixed(2), 2, Y(lo)); cc.fillText("0", 2, Y(0) + 4);
+  cc.fillText("step " + t1, w - p - 60, h - 8);
+  ["--food", "--food2", "--toxic", "--toxic2"].forEach((k, i) => {
+    cc.strokeStyle = css(k); cc.lineWidth = 2; cc.beginPath();
+    hist.forEach((r, j) => j ? cc.lineTo(X(r[0]), Y(r[i+1])) : cc.moveTo(X(r[0]), Y(r[i+1]))); cc.stroke();
+  });
+}
+const es = new EventSource("stream?t=" + encodeURIComponent(tok));
+es.onmessage = ev => {
+  const s = JSON.parse(ev.data); if (!s.pos) return;
+  document.getElementById("wiring").textContent = "Brain wiring: " + s.wiring;
+  document.getElementById("e").textContent = s.energy.toFixed(2);
+  document.getElementById("c").textContent = s.curiosity.toFixed(2);
+  document.getElementById("eb").style.width = (100 * s.energy) + "%";
+  document.getElementById("cb").style.width = (100 * s.curiosity) + "%";
+  document.getElementById("t").textContent = s.t;
+  document.getElementById("n").textContent = s.n_eat + " / " + s.n_toxic;
+  drawWorld(s); drawChart(s.history);
+};
+es.onerror = () => document.getElementById("wiring").textContent = "stream disconnected (wrong token or server stopped)";
+</script>
+</body>
+</html>
