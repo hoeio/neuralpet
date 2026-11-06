@@ -24,6 +24,8 @@ CONDS = ["random", "shuffle", "real"]
 SPARSITIES = ["sparse", "literal"]
 ETA, SIG, N_ODORS, BLOCKS, SNAP, BLOCKS_B, CRIT = 0.02, 0.2, 20, 20, 10, 10, 0.9
 TEST_SIGMAS = [0.0, 0.5, 1.0, 2.0]
+READOUT = "pooled"   # "ratio" = R(W_t)/R(W_0) on the same KC code (experiment 004)
+W_INIT = {}          # per-process initial KC->MBON weights, set in run_one
 
 
 def cond_id(cond):
@@ -47,6 +49,8 @@ def evaluate(odors, val, W_pk, W_km, frac, sigma, reps, rng):
     X, y = np.repeat(odors, reps, 0), np.repeat(val, reps)
     kc = mb.kc_code(mb.pn_rates(X, sigma, rng), W_pk, frac)
     R = mb.mbon_out(kc, W_km)
+    if READOUT == "ratio":
+        R = R / np.maximum(mb.mbon_out(kc, W_INIT["W"]), 1e-9)
     return mb.auc(R[y == 1], R[y == 0]), float(kc.mean())
 
 
@@ -67,6 +71,7 @@ def run_one(args):
     W_pk0, W_km0, glom = load()
     W_pk, W_km = mb.make_wiring(cond, W_pk0, W_km0, np.random.default_rng([seed, cond_id(cond)]))
     W_km = W_km.astype(np.float64).copy()
+    W_INIT["W"] = W_km.copy()
     task = np.random.default_rng([seed, 99])          # same odours/valences in every condition
     noise = np.random.default_rng([seed, 7])          # same noise stream in every condition
     A, vA = task_set(task, glom)
