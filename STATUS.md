@@ -17,9 +17,10 @@
   - 003: which layer;
   - 004: ratio readout;
   - 005: connectome-derived compartment readout (PPL1→MBON ≥20 synapses) vs random grouping;
-  - 006: real odours (DoOR 2.0, 60 odorants; `scripts/fetch_door.py`) vs random odours.
+  - 006: real odours (DoOR 2.0, 60 odorants; `scripts/fetch_door.py`) vs random odours;
+  - 007: which PN→KC degree property matters (pn_out / kc_in controls).
   Each has a PLAN.md committed before running. Reports: `reports/001_report.md` (001+003+004),
-  `reports/002_report.md`, `reports/005_report.md`, `reports/006_report.md`.
+  `reports/002_report.md`, `reports/005_report.md`, `reports/006_report.md`, `reports/007_report.md`.
 - Docs: `docs/ADAPTERS.md` (all designed rules; v1 model, v2 pet), `LITERATURE.md`, `DATA.md`,
   `DECISIONS.md`, `OPEN_QUESTIONS.md`, `TUNNEL.md`.
 
@@ -45,14 +46,20 @@
   [0.0005, 0.030] sparse, +0.029 [0.013, 0.044] literal). With real odours, connectome-degree wirings
   beat random wiring (real − random +0.029 [0.012, 0.046]): degree structure helps, specific partners
   do not. The real-odour task is near its floor (M1 mostly censored).
+- **007, degree components (PN→KC only):** keeping each PN's out-degree beats random wiring with
+  real odours (sparse +0.025 [0.010, 0.040], literal +0.043 [0.025, 0.061]) but *hurts* with random
+  odours (−0.033, −0.036): a crossover. KC in-degree alone does nothing. Real is still below the
+  shuffle (−0.014 [−0.025, −0.004] sparse, DoOR). Exploratory: glomeruli with more KC partners
+  respond more strongly and more variably in DoOR (Spearman r ≈ 0.38, p ≈ 0.01).
 - **Pet (002): null at the floor.** The energy-dependent reward DA made no detectable difference
   (mean energy −0.006 [−0.018, 0.005]). The pet starves ~75% of the time in both conditions, so the
   test was weak.
 - Speed is no issue: one 001 run takes ~0.5 s, and all 180 runs take ~13 s on 10 cores.
 
 ## Recommended next
-0. Which degree property matters for real odours (PN out-degree vs KC in-degree), and an easier
-   real-odour task (M1 off the cap). See reports/006_report.md.
+0. Is the PN out-degree benefit about matching high coverage to informative glomeruli? Control:
+   permute out-degree values across glomeruli. Also why real < shuffle (co-convergence control), and
+   an easier real-odour task (M1 off the cap). See reports/007_report.md.
 1. A degree-matched random grouping as the rule-6 control for compartments (005 follow-up). Also a
    less noisy compartment readout, pre-registered as new experiments.
 2. Structured odours (real receptor statistics), since real PN→KC bias is towards specific glomeruli.

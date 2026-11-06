@@ -32,7 +32,10 @@ def cond_id(cond):
     """Stable id for the wiring rng. 001 strings keep their original ids (0, 1, 2)."""
     if isinstance(cond, str):
         return CONDS.index(cond)
-    return 10 + 3 * CONDS.index(cond[0]) + CONDS.index(cond[1])
+    if cond[0] in CONDS and cond[1] in CONDS:
+        return 10 + 3 * CONDS.index(cond[0]) + CONDS.index(cond[1])
+    every = CONDS + ["pn_out", "kc_in"]                  # experiment 007 controls
+    return 100 + 10 * every.index(cond[0]) + every.index(cond[1])
 
 
 def load():

@@ -1,0 +1,4 @@
+glomeruli with DoOR data: 46 of 55
+mean response: Spearman vs KC edges per glomerulus r=0.39 (p=0.008); vs KC edges per PN r=0.14 (p=0.344)
+sd across odorants: Spearman vs KC edges per glomerulus r=0.37 (p=0.010); vs KC edges per PN r=0.22 (p=0.142)
+fraction of odorants activating: Spearman vs KC edges per glomerulus r=0.23 (p=0.127); vs KC edges per PN r=-0.00 (p=0.985)
