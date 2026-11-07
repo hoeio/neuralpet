@@ -1,0 +1,126 @@
+{
+ "genome": "FlyWire v783 right mushroom body",
+ "liked": "isopentyl acetate",
+ "disliked": "benzaldehyde",
+ "control": "linalool",
+ "trace": [
+  {
+   "t": 0.0,
+   "label": "start",
+   "isopentyl acetate": 0.0,
+   "benzaldehyde": 0.0,
+   "linalool": 0.0
+  },
+  {
+   "t": 10.0,
+   "label": "round 1: praised isopentyl acetate",
+   "isopentyl acetate": 0.03534498845488245,
+   "benzaldehyde": 0.012340112050954555,
+   "linalool": 0.01007877725562607
+  },
+  {
+   "t": 20.0,
+   "label": "round 1: scolded benzaldehyde",
+   "isopentyl acetate": 0.019973877876897528,
+   "benzaldehyde": -0.034796627826674774,
+   "linalool": -0.00027810305615373344
+  },
+  {
+   "t": 30.0,
+   "label": "round 2: praised isopentyl acetate",
+   "isopentyl acetate": 0.057538469742501985,
+   "benzaldehyde": -0.023700010421155316,
+   "linalool": 0.010675369229954667
+  },
+  {
+   "t": 40.0,
+   "label": "round 2: scolded benzaldehyde",
+   "isopentyl acetate": 0.04236904574262892,
+   "benzaldehyde": -0.06884643514078842,
+   "linalool": -0.0007327631475894991
+  },
+  {
+   "t": 50.0,
+   "label": "round 3: praised isopentyl acetate",
+   "isopentyl acetate": 0.08197780777544013,
+   "benzaldehyde": -0.05757306963374964,
+   "linalool": 0.01079145085143558
+  },
+  {
+   "t": 60.0,
+   "label": "round 3: scolded benzaldehyde",
+   "isopentyl acetate": 0.058373010235628506,
+   "benzaldehyde": -0.09433989578702141,
+   "linalool": 0.0020745451846561737
+  },
+  {
+   "t": 70.0,
+   "label": "round 4: praised isopentyl acetate",
+   "isopentyl acetate": 0.0935074816520308,
+   "benzaldehyde": -0.08506063266248495,
+   "linalool": 0.009080248393611035
+  },
+  {
+   "t": 80.0,
+   "label": "round 4: scolded benzaldehyde",
+   "isopentyl acetate": 0.07651425242363441,
+   "benzaldehyde": -0.12685988668796533,
+   "linalool": -0.0009693930055311939
+  },
+  {
+   "t": 90.0,
+   "label": "round 5: praised isopentyl acetate",
+   "isopentyl acetate": 0.11681128022339544,
+   "benzaldehyde": -0.11348032880767392,
+   "linalool": 0.01024520409919687
+  },
+  {
+   "t": 100.0,
+   "label": "round 5: scolded benzaldehyde",
+   "isopentyl acetate": 0.10292571790654097,
+   "benzaldehyde": -0.1530402526467226,
+   "linalool": 0.001762919659043638
+  },
+  {
+   "t": 110.0,
+   "label": "round 6: praised isopentyl acetate",
+   "isopentyl acetate": 0.142936167154654,
+   "benzaldehyde": -0.13978047361682,
+   "linalool": 0.013798642014132967
+  },
+  {
+   "t": 120.0,
+   "label": "round 6: scolded benzaldehyde",
+   "isopentyl acetate": 0.1297131747609271,
+   "benzaldehyde": -0.17961095077441577,
+   "linalool": 0.0031489825749474896
+  }
+ ],
+ "approach_before": {
+  "isopentyl acetate": 0.8300496903894452,
+  "benzaldehyde": 0.8300496903894452,
+  "linalool": 0.8300496903894452
+ },
+ "approach_after": {
+  "isopentyl acetate": 0.5938659157508394,
+  "benzaldehyde": 0.6035649134261051,
+  "linalool": 0.5974073520139859
+ },
+ "approach_near": {
+  "secs": 90.0,
+  "reps": 8,
+  "dist": 1.0
+ },
+ "approach_near_before": {
+  "isopentyl acetate": 0.16931498362232356,
+  "benzaldehyde": 0.16931498362232356,
+  "linalool": 0.16931498362232356
+ },
+ "approach_near_after": {
+  "isopentyl acetate": 0.6677131227175209,
+  "benzaldehyde": 1.424656499634608,
+  "linalool": 0.6945884689789714
+ },
+ "pet_time_s": 120.0,
+ "note": "approach = change in head distance to a toy of that smell over 40 s (negative = moved closer), mean of 4 copies"
+}

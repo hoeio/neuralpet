@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>NeuralPet</title>
+<link rel="stylesheet" href="/style.css">
+<script src="/app.js" defer></script>
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1 id="name">…</h1>
+    <p class="sub"><span id="mood">…</span> · <span id="age">age …</span></p>
+  </div>
+  <a class="about" href="/about">About</a>
+</header>
+
+<main>
+  <section class="hero">
+    <canvas id="arena" aria-label="The pet in its arena, drawn from its simulated body"></canvas>
+    <p class="hint" id="hint">Tap the arena to drop food or a toy.</p>
+  </section>
+
+  <section class="card meters">
+    <div class="meter"><span>Energy</span><div class="bar"><i id="energy"></i></div></div>
+    <div class="meter"><span>Curiosity</span><div class="bar"><i id="curiosity"></i></div></div>
+  </section>
+
+  <section class="card actions" id="actions">
+    <button data-a="feed">🍎 Feed</button>
+    <button data-a="praise">👍 Praise</button>
+    <button data-a="scold">👎 Scold</button>
+    <button data-a="rest" id="restbtn">🌙 Lights off</button>
+    <div class="row">
+      <select id="odor" aria-label="Odorant"></select>
+      <button data-a="offer_odor">Offer smell</button>
+    </div>
+    <div class="row">
+      <label class="mode"><input type="radio" name="drop" value="food" checked> drop food</label>
+      <label class="mode"><input type="radio" name="drop" value="toy"> drop toy (uses the smell above)</label>
+    </div>
+    <p class="msg" id="msg" role="status"></p>
+  </section>
+
+  <section class="card">
+    <h2>Personality <small>learned smell preferences</small></h2>
+    <ul id="prefs" class="prefs"></ul>
+    <p class="note">Bars are the brain's learned valence for each smell it knows (right = approach, left = avoid).
+      Teach it: offer a smell, then praise or scold while it is still smelling it.</p>
+  </section>
+
+  <section class="card">
+    <h2>Diary</h2>
+    <ol id="diary" class="diary"></ol>
+  </section>
+
+  <details class="card">
+    <summary>Under the hood</summary>
+    <p class="note" id="genome"></p>
+    <canvas id="kc" height="60" aria-label="Kenyon-cell activity"></canvas>
+    <p class="note">Each dot is one Kenyon cell of the model; lit = active this step (binary units, not spikes).
+      Dopamine: <span id="da">–</span>. The brain drawn in the head is the real FlyWire mushroom-body geometry, scaled down
+      to fit (a display choice). Skin spots are a cosmetic readout of preferences and age.</p>
+  </details>
+
+  <details class="card">
+    <summary>Memorials &amp; new pet</summary>
+    <ul id="memorials" class="memorials"></ul>
+    <button id="newpet" class="danger">Start a new pet</button>
+  </details>
+</main>
+<footer>A bio-inspired simulation, not a living thing. FlyWire data CC BY-NC 4.0, non-commercial. <a href="/about">About &amp; credits</a></footer>
+</body>
+</html>

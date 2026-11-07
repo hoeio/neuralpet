@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- TEMPLATE ONLY, not installed. To use: replace REPO with the absolute repo path and UVDIR with the folder of `which uv`, copy to
+     ~/Library/LaunchAgents/ai.neuralpet.play.plist, then: launchctl load ~/Library/LaunchAgents/ai.neuralpet.play.plist
+     It starts scripts/run_play.sh at login and restarts it if it exits. Binds 127.0.0.1 only. -->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>ai.neuralpet.play</string>
+  <key>ProgramArguments</key><array><string>REPO/scripts/run_play.sh</string></array>
+  <key>WorkingDirectory</key><string>REPO</string>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>REPO/.play.log</string>
+  <key>StandardErrorPath</key><string>REPO/.play.log</string>
+  <key>EnvironmentVariables</key><dict><key>PATH</key><string>UVDIR:/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin</string></dict>
+</dict>
+</plist>

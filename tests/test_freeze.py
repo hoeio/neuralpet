@@ -42,7 +42,17 @@ def test_012_slice_unchanged():
         assert np.isclose(out[k], want[k], rtol=0, atol=1e-9), (k, out[k], want[k])
 
 
+def test_research_code_unchanged_since_tag():
+    """The play app may only import the research code: src/neuralpet and experiments/ equal the tag."""
+    import subprocess
+    out = subprocess.run(["git", "diff", "--name-only", "research-freeze", "--", "src/neuralpet", "experiments"],
+                         cwd=ROOT, capture_output=True, text=True, check=True).stdout.strip()
+    assert out == "", out
+
+
 if __name__ == "__main__":
+    test_research_code_unchanged_since_tag()
+    print("ok research code unchanged since research-freeze")
     test_010_slice_unchanged()
     print("ok 010 slice")
     test_012_slice_unchanged()
