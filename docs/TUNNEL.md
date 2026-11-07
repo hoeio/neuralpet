@@ -59,3 +59,23 @@ blocks**: with small messages nothing arrived for 27 s, then exactly 131,072 byt
 
 **Fix:** the page now polls `/state?t=…&since=<step>` (~5×/s, one request in flight). History points
 are sent incrementally. Each update is ~0.4 KB; median latency through the tunnel is 59 ms (20 polls).
+
+## 2026-11-07: start scripts, reboots, and the play app
+- `scripts/run_viewer.sh` starts the research viewer (127.0.0.1:8797, read-only). `scripts/run_play.sh`
+  starts the play app (127.0.0.1:8798, has write endpoints; security model in docs/PLAY.md).
+- launchd templates (not installed, not loaded): `scripts/ai.neuralpet.viewer.plist.template`,
+  `scripts/ai.neuralpet.play.plist.template`. Fill in `REPO` and `UVDIR`, copy to `~/Library/LaunchAgents/`,
+  `launchctl load` it. Then the app restarts at login and when it exits.
+- The current quick tunnel and its token are the human's live access. I did not rotate the token, stop
+  the tunnel, or change anything at Cloudflare.
+- To expose the play app the same way you would use a quick tunnel to `http://127.0.0.1:8798` (the app
+  accepts `*.trycloudflare.com` hosts), or better a named-tunnel hostname listed in
+  `NEURALPET_PLAY_HOSTS`, behind **Cloudflare Access**:
+  ```yaml
+  ingress:
+    - hostname: pet.example.com          # placeholder
+      service: http://127.0.0.1:8798
+    - service: http_status:404
+  ```
+  The play app has write actions. With a quick tunnel the token is its only gate (plus rate limits),
+  so treat the link like a password.

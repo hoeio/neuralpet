@@ -67,11 +67,11 @@ def test_effort_costs_energy():
     drains = []
     for resting in (True, False):
         c = C.Creature(W_pk, W_km, odors, seed=1, roles=[("food", 0)])
-        c.sources[0].pos = np.array([-50.0, -50.0])    # nothing to eat
+        c.sources[0].cooldown = 1e9                         # nothing to eat or smell
         c.resting = resting
         c.run(30)
         drains.append(0.7 - c.energy)
-    assert np.isclose(drains[0], 30 * C.E_BASE, rtol=0.02) and drains[1] > drains[0] * 1.3, drains
+    assert np.isclose(drains[0], 30 * C.E_BASE, rtol=0.02) and drains[1] > drains[0] * 1.1, drains
 
 
 def test_realtime_factor():

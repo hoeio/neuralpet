@@ -1,0 +1,60 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below, and cite the data sources listed in docs/DATA.md."
+title: "NeuralPet: does real mushroom-body wiring help dopamine-gated learning? A confirmatory test, and a playable pet"
+authors:
+  - name: "hoeio"
+version: 1.0.0
+date-released: 2026-11-07
+license: MIT
+repository-code: "https://github.com/hoeio/neuralpet"
+references:
+  - type: article
+    title: "Neuronal wiring diagram of an adult brain"
+    authors: [{family-names: Dorkenwald, given-names: Sven}]
+    journal: Nature
+    volume: 634
+    start: 124
+    end: 138
+    year: 2024
+    doi: 10.1038/s41586-024-07558-y
+  - type: article
+    title: "Whole-brain annotation and multi-connectome cell typing of Drosophila"
+    authors: [{family-names: Schlegel, given-names: Philipp}]
+    journal: Nature
+    volume: 634
+    start: 139
+    end: 152
+    year: 2024
+    doi: 10.1038/s41586-024-07686-5
+  - type: article
+    title: "A complete electron microscopy volume of the brain of adult Drosophila melanogaster"
+    authors: [{family-names: Zheng, given-names: Zhihao}]
+    journal: Cell
+    volume: 174
+    start: 730
+    end: 743
+    year: 2018
+    doi: 10.1016/j.cell.2018.06.019
+  - type: article
+    title: "A connectome and analysis of the adult Drosophila central brain"
+    authors: [{family-names: Scheffer, given-names: Louis K.}]
+    journal: eLife
+    volume: 9
+    year: 2020
+    doi: 10.7554/eLife.57443
+  - type: article
+    title: "DoOR 2.0 - Comprehensive Mapping of Drosophila melanogaster Odorant Responses"
+    authors: [{family-names: Münch, given-names: Daniel}, {family-names: Galizia, given-names: C. Giovanni}]
+    journal: Scientific Reports
+    volume: 6
+    year: 2016
+    doi: 10.1038/srep21841
+  - type: article
+    title: "Coding of Odors by a Receptor Repertoire"
+    authors: [{family-names: Hallem, given-names: Elissa A.}, {family-names: Carlson, given-names: John R.}]
+    journal: Cell
+    volume: 125
+    start: 143
+    end: 160
+    year: 2006
+    doi: 10.1016/j.cell.2006.01.050

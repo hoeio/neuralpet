@@ -12,19 +12,21 @@ import numpy as np
 from neuralpet import mb
 from neuralpet.body import Body
 
-# ---- world and adapter constants (v8; fixed by experiments/012/pilot.py on synthetic wiring) ----
-ARENA = 10.0          # BL
-ODOR_SIGMA = 2.0      # BL, Gaussian plume width
-R_EAT = 0.25          # BL, head within this of a source = contact
+# ---- world and adapter constants (v8; fixed by experiments/012/pilot.py round 7 on synthetic wiring,
+#      reward modulation off; registered in docs/ADAPTERS.md v8 and asserted by experiments/012/run.py) ----
+ARENA = 6.0           # BL; the world is a torus (periodic), so there are no walls to get trapped on
+ODOR_SIGMA = 0.8      # BL, Gaussian plume width
+R_EAT = 0.4           # BL, head within this of a source = contact
 TICK = 0.2            # s, brain update interval
 PN_SIGMA, FRAC = 0.1, 0.10
 ETA, W_MAX = 0.05, 3.0
 STEER_MAX, K_CONTRAST = 0.35, 25.0
 FOOD_E, TOXIC_E = 0.3, 0.05
-E_BASE, E_EFFORT = 0.0015, 0.0025   # energy per s: baseline + per unit muscle effort rate
+E_BASE, E_EFFORT = 0.0015, 0.0012   # energy per s: baseline + per unit muscle effort rate
 TOXIC_REFRACT, REFLEX_S = 3.0, 2.0   # s: no repeated toxic hit / avoidance reflex duration
+STEER_NOISE = (0.04, 0.1)  # OU steering noise: base + per unit curiosity (exploration)
 T_DEATH = 120.0       # s at zero energy -> end of life (hard mode / precariousness)
-N_FOOD, N_TOXIC = 3, 2
+N_FOOD, N_TOXIC = 4, 2
 
 
 def cpg_rule(energy, resting=False):
@@ -73,7 +75,7 @@ class Creature:
             self.roles = [("food", int(i)) for i in idx[:N_FOOD]] + [("toxic", int(i)) for i in idx[N_FOOD:]]
         self.sources = [Source(self._free_pos(), k, o) for k, o in self.roles]
         kw = {} if self.c_n is None else dict(c_n=self.c_n)
-        self.body = Body(pos=self.rng.uniform(2, ARENA - 2, 2), heading=self.rng.uniform(-np.pi, np.pi), arena=ARENA, **kw)
+        self.body = Body(pos=self.rng.uniform(0, ARENA, 2), heading=self.rng.uniform(-np.pi, np.pi), arena=1e9, **kw)
         self.W0 = self.W_km.astype(np.float64).copy()
         self.W = self.W0.copy()
         self.wsum0 = self.W0.sum(1)
@@ -85,14 +87,20 @@ class Creature:
 
     # ---- world
     def _free_pos(self):
-        return self.rng.uniform(1.0, ARENA - 1.0, 2)
+        return self.rng.uniform(0.0, ARENA, 2)
+
+    @staticmethod
+    def dist2(a, b):
+        """Squared distance on the torus (minimum image). The body itself is never wrapped."""
+        d = (np.asarray(a) - np.asarray(b) + ARENA / 2) % ARENA - ARENA / 2
+        return float((d ** 2).sum())
 
     def field(self, p):
         """PN input at point p: sum over sources of Gaussian concentration x odour vector."""
         out = np.zeros(self.odors.shape[1])
         for s in self.sources:
             if s.cooldown <= 0:
-                out += np.exp(-((s.pos - p) ** 2).sum() / (2 * ODOR_SIGMA ** 2)) * self.odors[s.odor]
+                out += np.exp(-self.dist2(s.pos, p) / (2 * ODOR_SIGMA ** 2)) * self.odors[s.odor]
         return out
 
     # ---- brain
@@ -131,7 +139,7 @@ class Creature:
         vl, vr = self.valence(kl), self.valence(kr)
         v = 0.5 * (vl + vr)
         contrast = (il - ir) / (il + ir + 0.01)
-        self.steer_noise += -self.steer_noise * TICK + np.sqrt(TICK) * (0.1 + 0.3 * self.curiosity) * self.noise.standard_normal()
+        self.steer_noise += -self.steer_noise * TICK + np.sqrt(TICK) * (STEER_NOISE[0] + STEER_NOISE[1] * self.curiosity) * self.noise.standard_normal()
         steer = STEER_MAX * np.tanh(K_CONTRAST * v * contrast) if self.steering else 0.0
         if self.reflex > 0:                        # innate avoidance reflex after a toxic hit (fixed)
             steer, self.reflex = -STEER_MAX * np.sign(il - ir or 1.0), self.reflex - TICK
@@ -149,7 +157,9 @@ class Creature:
         pn_h, kc_h = self.code(self.field(head))
         for s in self.sources:
             s.cooldown = max(0.0, s.cooldown - TICK)
-            if s.cooldown > 0 or np.linalg.norm(s.pos - head) > R_EAT:
+            if getattr(s, "inside", False) and self.dist2(s.pos, head) > (1.5 * R_EAT) ** 2:
+                s.inside = False
+            if s.cooldown > 0 or self.dist2(s.pos, head) > R_EAT ** 2:
                 continue
             if s.kind == "food":
                 before = self.energy
@@ -158,7 +168,10 @@ class Creature:
                 self.da_r_log.append(da_r)
                 s.pos, s.cooldown = self._free_pos(), 5.0
                 self.events.append((round(self.t, 1), "eat", s.odor))
-            elif s.kind == "toxic" and self.t - self.last_toxic > TOXIC_REFRACT:   # fix: one hit per episode
+            elif s.kind == "toxic" and not getattr(s, "inside", False) and self.t - self.last_toxic > TOXIC_REFRACT:
+                # fix for getting stuck at toxic sources: one hit per contact episode (the head must
+                # leave 1.5 x the contact radius before the same source can hit again) + refractory time
+                s.inside = True
                 self.energy = max(0.0, self.energy - TOXIC_E)
                 da_p += 1.0
                 self.last_toxic, self.reflex = self.t, REFLEX_S

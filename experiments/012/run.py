@@ -27,6 +27,15 @@ FAMILY = [("S1", "on", "const"), ("S2", "on", "generic"), ("S3", "on", "shuffle_
 METRICS = ["survival_s", "mean_energy"]
 PANEL = 8                       # odorants in the individuality worlds
 _D = {}
+REGISTERED = dict(ARENA=6.0, ODOR_SIGMA=0.8, R_EAT=0.4, TICK=0.2, PN_SIGMA=0.1, FRAC=0.10, ETA=0.05, W_MAX=3.0, STEER_MAX=0.35,
+                  K_CONTRAST=25.0, FOOD_E=0.3, TOXIC_E=0.05, E_BASE=0.0015, E_EFFORT=0.0012, TOXIC_REFRACT=3.0, REFLEX_S=2.0,
+                  T_DEATH=120.0, N_FOOD=4, N_TOXIC=2, STEER_NOISE=(0.04, 0.1))   # docs/ADAPTERS.md v8
+
+
+def check_constants():
+    got = {k: getattr(C, k) for k in REGISTERED}
+    assert got == REGISTERED, f"creature constants differ from the registered v8 values: {got}"
+    return {k: list(v) if isinstance(v, tuple) else v for k, v in got.items()}
 
 
 def data():
@@ -208,6 +217,7 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
     res = HERE / "results"
     if not a.report_only:
+        consts = check_constants()
         t = time.time()
         with Pool(a.procs) as pool:
             main_rows = [r for rs in pool.map(job_main, range(SEED_MAIN, SEED_MAIN + a.seeds), chunksize=1) for r in rs]
@@ -217,7 +227,7 @@ def main():
         pd.DataFrame(main_rows).to_csv(res / "main.csv", index=False)
         pd.DataFrame(ind).to_csv(res / "indiv.csv", index=False)
         pd.DataFrame(rev).to_csv(res / "reversal.csv", index=False)
-        (res / "meta.json").write_text(json.dumps(dict(seeds=a.seeds, life_s=LIFE, wall_s=round(time.time() - t, 1)), indent=1))
+        (res / "meta.json").write_text(json.dumps(dict(seeds=a.seeds, life_s=LIFE, constants=consts, wall_s=round(time.time() - t, 1)), indent=1))
     m, ind, rev = (pd.read_csv(res / f) for f in ["main.csv", "indiv.csv", "reversal.csv"])
     t, ist = tables(m, ind, rev)
     (OUT / "tables.md").write_text(t + "\n")

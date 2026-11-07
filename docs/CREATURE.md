@@ -17,9 +17,10 @@ body + world + state). Tests: `tests/test_body.py`. Fixed rules: `docs/ADAPTERS.
 | Medium: anisotropic viscous drag, normal / tangential = 10 (resistive-force theory, overdamped) | the physical principle (low-Reynolds undulatory locomotion) is textbook physics | the constants |
 | Locomotor CPG: 11 coupled phase oscillators, one wave per body, head → tail | — | all of it (no connectome motor circuit is used) |
 | Head sensors: two points 0.04 BL left/right of the head, 0.02 BL ahead | — | positions |
-| Odour → glomeruli at each sensor | DoOR 2.0 receptor responses (Münch & Galizia 2016) mapped to glomeruli | Gaussian plumes (σ = 2 BL), mixing rule, noise, scaling (adapters v4, v8) |
+| Odour → glomeruli at each sensor | DoOR 2.0 receptor responses (Münch & Galizia 2016) mapped to glomeruli | Gaussian plumes (σ = 0.8 BL), mixing rule, noise, scaling (adapters v4, v8) |
 | Brain: PN → KC → MBON | FlyWire v783 right mushroom body wiring (or hemibrain for checks) | binary kWTA KCs (10%), single global dopamine, plasticity rule (v1/v2) |
 | Brain → body | — | steering = 0.35·tanh(25·valence·sensor contrast); state → CPG amplitude/frequency; innate avoidance reflex after a toxic hit |
+| World | — | a 6 × 6 BL torus (no walls: undulating bodies got pinned to walls 79% of the time in the pilot), 4 food and 2 toxic sources |
 | Internal state: energy, curiosity | — | all rules; reward dopamine = drive reduction after Keramati & Gutkin 2014 (a model, not data) |
 | Metabolism: drain = baseline + effort·(mean squared muscle activation) | — | constants |
 | Brain shape drawn in the head | FlyWire neuron positions and sampled synapse points (`data/mb/shapes.npz`) | scale and placement in the head (a display choice, labelled in the UI) |

@@ -106,3 +106,41 @@ Fixed on synthetic wiring only (`experiments/010/pilot.py`, grids 1–3, results
 - **Compartment DA.** P = MBONs receiving ≥ 20 synapses from any PPL1 DAN (v3 rule). Punishment DA
   depresses KC→MBON only onto P; choice score = Σ_{m∈P} R_m(W_t) / Σ_{m∈P} R_m(W_0) + readout noise.
   The plasticity rule with graded KCs: W_im ← W_im·(1 − η·DA·r_i).
+
+## v5 — 2026-11-07: locomotor layer (WP5a; src/neuralpet/body.py, src/neuralpet/creature.py)
+The brain never sets joint angles. A chain of 11 coupled phase oscillators (one per joint; coupling
+4.0; one body wave, head → tail) drives dorsal/ventral muscle torque 0.4·(amp·sin φ_j + steer).
+- **Steering (sensors × valence):** steer = 0.35·tanh(25·V·c) + OU exploration noise, where V = mean
+  learned valence of the KC codes at the two head sensors (ratio readout, V = R(W_t)/R(W_0) − 1, so V = 0
+  before any learning) and c = (I_L − I_R)/(I_L + I_R + 0.01), I = mean PN rate at that sensor.
+- **State → CPG:** amp = 0.6 + 0.4·(1 − energy), freq = 0.6 + 0.6·(1 − energy) Hz; resting: amp = 0, no steering.
+- **Reward and punishment are not motor commands:** dopamine only gates plasticity. The one innate motor
+  rule is a 2 s avoidance turn after a toxic hit (away from the side with more odour).
+- Exploration noise: OU process, rate 1/s, amplitude 0.04 + 0.1·curiosity.
+Physics constants: in docs/CREATURE.md and body.py; they never change with age or play.
+
+## v8 — 2026-11-07: the creature's world and state (experiment 012 and the play app)
+Fixed by `experiments/012/pilot.py` on synthetic wiring with reward modulation off (constant DA 0.5),
+rounds 1–7 (`experiments/012/pilot_results/`). Criterion: median fraction of time with energy > 0 ≥ 0.9
+and mean energy between 0.3 and 0.8, so that the state rule has room to matter. History of the pilot:
+round 1 (arena 6–8, 2-BL plumes, drain 0.001–0.0015 + 0.002·effort): ~1 meal per 30 min, starving;
+round 2 (lower drain, more food): energy fine, but food and toxic were learned alike (plumes as wide as
+the arena); round 3 (narrow plumes): creature circled in place (steering noise too large); round 4:
+pinned against walls 79% of the time → **the world became a torus** (round 5); round 5: repeated toxic
+hits during one slow contact → **one hit per contact episode** (round 6); round 6: mean energy ≈ 0.85,
+too easy; round 7: final values below (median time above zero 1.0, mean energy 0.60 with steering on,
+0.60 off). Steering did not change meals on the synthetic circuit; not tuned for it.
+- World: 6 × 6 BL torus (minimum-image distances; the body is never wrapped), 4 food + 2 toxic sources,
+  each with a DoOR odorant (random per world). Odour at a point = Σ_s exp(−d²/(2·0.8²))·odour_s.
+- Contact: head within 0.4 BL. Food: +0.3 energy (cap 1), the source moves to a random place after a 5 s
+  cooldown. Toxic: −0.05 energy, punishment DA 1, once per contact episode (the head must leave 0.6 BL)
+  and at most once per 3 s.
+- Energy drain per second: 0.0015 + 0.0012·effort, effort = mean squared muscle activation (≈ 0.3–0.6
+  when moving). Curiosity c ← c + 0.05·dt·(energy − c).
+- Reward DA on eating: "on" = drive reduction [H(e_before) − H(e_after)]/(2·0.3), H(e) = (1 − e)²
+  (Keramati & Gutkin 2014); "const" = the per-seed mean of the "on" run; "generic" = max(0, a + b·e + c·e²)
+  with random (a, b, c) per seed, rescaled to the same mean (experiment 012).
+- Plasticity (v2 item 7): W_im ← W_im·(1 + 0.05·KC_i·(DA_r − DA_p)), clipped to [0, 3·W_im(0)], on the
+  KC code at the head at the moment of contact.
+- Mortality (precariousness): 120 s continuously at zero energy ends the individual (research; the play
+  app uses torpor instead unless `hard_mode`).

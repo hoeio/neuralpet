@@ -9,3 +9,15 @@
 viewer. Recommendation: after `scripts/extract_shapes.py` has produced `data/mb/shapes.npz`, the human may
 delete the big file to free space (I will not delete data). It is re-downloadable with
 `scripts/fetch_flywire.py --synapses`.
+
+## 2026-11-07 (final session)
+- **Move to a named tunnel with Cloudflare Access, then rotate the tokens.** The viewer (and the play app,
+  if you expose it) are reachable through a quick tunnel protected only by a URL token. Recommended: add
+  hostnames to your named tunnel (docs/TUNNEL.md), put an Access policy for your own identity in front, then
+  rotate `NEURALPET_TOKEN` and `NEURALPET_PLAY_TOKEN` by deleting their lines in `.env` and restarting. I did
+  not do any of this (no Cloudflare changes, no token rotation while the tunnel is your live access).
+- **The 9.5 GB synapse file** `data/flywire/flywire_synapses_783.feather` is only used to make
+  `data/mb/shapes.npz` (already made). You can delete it to free space; it can be re-downloaded with
+  `scripts/fetch_flywire.py --synapses`. I did not delete it.
+- **Licence of the code:** no earlier decision was found, so the code is MIT (LICENSE). Data keep their own
+  licences (FlyWire CC BY-NC 4.0, hemibrain CC BY 4.0, DoOR CC BY-SA 4.0) and are not in the repo.
