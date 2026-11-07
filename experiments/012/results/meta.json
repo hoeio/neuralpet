@@ -1,0 +1,30 @@
+{
+ "seeds": 40,
+ "life_s": 2400.0,
+ "constants": {
+  "ARENA": 6.0,
+  "ODOR_SIGMA": 0.8,
+  "R_EAT": 0.4,
+  "TICK": 0.2,
+  "PN_SIGMA": 0.1,
+  "FRAC": 0.1,
+  "ETA": 0.05,
+  "W_MAX": 3.0,
+  "STEER_MAX": 0.35,
+  "K_CONTRAST": 25.0,
+  "FOOD_E": 0.3,
+  "TOXIC_E": 0.05,
+  "E_BASE": 0.0015,
+  "E_EFFORT": 0.0012,
+  "TOXIC_REFRACT": 3.0,
+  "REFLEX_S": 2.0,
+  "T_DEATH": 120.0,
+  "N_FOOD": 4,
+  "N_TOXIC": 2,
+  "STEER_NOISE": [
+   0.04,
+   0.1
+  ]
+ },
+ "wall_s": 790.9
+}
