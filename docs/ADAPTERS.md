@@ -68,3 +68,30 @@ Replaces v1 item 1 when `odour source = DoOR`:
 - Odorants with data for ≥ 60% of our 47 DoOR-covered glomeruli are kept (60 odorants). Missing → 0.
   Glomeruli without data and multiglomerular PN units → 0.
 - One global scale (4.89) so the mean input-unit value is 0.2, as for v1.
+
+## v6 — 2026-11-07: learning task for experiments 010–011 (src/neuralpet/task.py)
+
+Fixed on synthetic wiring only (`experiments/010/pilot.py`, grids 1–3, results in
+`experiments/010/pilot_results/`) before any run on connectome wiring.
+- Odour sources: DoOR (v4 rules, same 60 odorants in every sample) and **Hallem & Carlson 2006**
+  single-study ORN responses (`Hallem.2006.EN` column of the DoOR.data receptor tables, minus
+  spontaneous rate as published, clipped at 0, receptors → glomeruli via door_mappings.csv, receptors
+  mapped to two glomeruli skipped, same global scaling to mean 0.2). Only the 57 Hallem odorants that are
+  **not** in the DoOR panel are used, so the sources share no odorant (they are not independent labs:
+  DoOR's consensus includes Hallem 2006).
+- Per run: two disjoint sets A, B of n = 8 odorants each from one source; half of each set is CS+.
+- PN noise σ_train = 0.2; test noise σ_test = 1.0 (M2).
+- KC code: kWTA, f = 0.10 (sparse) or literal f = fraction of KCs with positive drive for 500 v1 random
+  odours on that sample's real wiring (same rule as v1).
+- Plasticity: v1 item 7, η = 0.02, punishment DA = 1 on CS+.
+- **Readout:** ratio score r = R(W_t)/R(W_0) on the same KC code (v1 item 8 / experiment 004) **plus
+  fixed output noise** N(0, 0.01²) per presentation. Without it the ratio readout reaches its plateau
+  after one block (review finding 3), because the ordering of ratios does not depend on how much
+  learning happened. With it, a learned change has to outgrow the noise.
+- Schedule: 12 blocks on A (each odour once per block, random order), then 6 blocks on B.
+  Evaluation: 12 noisy presentations per odour.
+- Metrics: **AULC** = mean AUC over blocks 1–12 (replaces trials-to-criterion; never censored);
+  **plateau** = mean AUC of blocks 10–12; **M2** = AUC at σ_test after block 12; **M3** = AUC drop on A
+  after training B.
+- Random v1 odours are not used in 010: on the synthetic random circuit they were at ceiling
+  (plateau 1.0) at every setting that put natural odours off the floor.

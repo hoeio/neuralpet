@@ -28,6 +28,8 @@ Python with `uv`, NumPy/Numba or Brian2 (verify it actually runs fast enough on 
 
 A read-only local web page on `127.0.0.1` with an access token (kept in a gitignored `.env`), showing the pet, its internal state, and learning curves. Render in the browser from a state stream, not with MuJoCo. No control buttons. Do not create or change any Cloudflare tunnel; write `docs/TUNNEL.md` with an ingress snippet and a reminder to turn on Cloudflare Access before exposing it.
 
+**Exception (2026-11-07, the human's explicit request): the play app.** A separate interactive app (`src/neuralpet_play/`, `play/`) lets one owner care for and teach a pet. It may have write endpoints, but only under the security rules in `docs/PLAY.md` (127.0.0.1 only, token exchanged for an HttpOnly session cookie, CSRF, Origin/Host check, action whitelist, size and rate limits, `NEURALPET_PLAY=0` read-only switch). It imports the research code and never modifies it; it never feeds confirmatory results. The research viewer above stays read-only.
+
 ## Git and notes
 
 Commit small and often. Keep a short dated entry in `notebook/` after each work session (what was run, the numbers from the result files, what it means, next step); a Sonnet subagent may write it from the git diff and result files. Push to `origin` if it exists. Otherwise create a private repo only if `gh` is logged in. Before pushing, check that no secrets, FlyWire data, or large files are included. End commit messages with the attribution lines the harness provides.

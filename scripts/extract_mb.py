@@ -1,14 +1,17 @@
-"""Extract the right-hemisphere mushroom-body sub-circuit from FlyWire v783 into data/mb/.
+"""Extract one mushroom-body sub-circuit from FlyWire v783 into data/mb/.
+
+    uv run python scripts/extract_mb.py [--side right|left]   # right -> mb.npz, left -> mb_left.npz
 
 Selection (docs/MB_EXTRACTION.md): annotations from Schlegel et al. 2024 (cell_class column).
-  KC   = cell_class 'Kenyon_Cell', side right
-  MBON = cell_class 'MBON', side right
-  DAN  = cell_class 'DAN', side right
-  APL  = cell_type 'APL', side right
+  KC   = cell_class 'Kenyon_Cell', side SIDE
+  MBON = cell_class 'MBON', side SIDE
+  DAN  = cell_class 'DAN', side SIDE
+  APL  = cell_type 'APL', side SIDE
   PN   = cell_class 'ALPN' (either soma side) with >= 1 thresholded edge onto a selected KC
 Edges: proofread_connections_783 summed over neuropils, kept if syn_count >= SYN_THRESHOLD.
-Writes data/mb/mb.npz (gitignored) and prints counts (copied into docs/MB_EXTRACTION.md).
+Writes data/mb/mb.npz or mb_left.npz (gitignored) and prints counts (copied into docs/MB_EXTRACTION.md).
 """
+import argparse
 import json
 from pathlib import Path
 
@@ -22,8 +25,12 @@ SYN_THRESHOLD = 5
 
 
 def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--side", default="right", choices=["right", "left"])
+    side = ap.parse_args().side
+    name = "mb" if side == "right" else f"mb_{side}"
     a = pd.read_csv(FW / "neuron_annotations.tsv", sep="\t", low_memory=False)
-    r = a[a.side == "right"]
+    r = a[a.side == side]
     groups = {
         "kc": r[r.cell_class == "Kenyon_Cell"],
         "mbon": r[r.cell_class == "MBON"],
@@ -84,12 +91,12 @@ def main():
     pos = {f"pos_{k}": pos_all.loc[v].to_numpy(np.float32) for k, v in ids.items()}
 
     OUT.mkdir(parents=True, exist_ok=True)
-    np.savez_compressed(OUT / "mb.npz", glom_of_pn=glom_of_pn, glom_names=glom_names.astype(str),
+    np.savez_compressed(OUT / f"{name}.npz", glom_of_pn=glom_of_pn, glom_names=glom_names.astype(str),
                         kc_type=groups["kc"].cell_type.fillna("").to_numpy().astype(str),
                         dan_type=groups["dan"].cell_type.fillna("").to_numpy().astype(str),
                         mbon_type=groups["mbon"].cell_type.fillna("").to_numpy().astype(str),
                         **{f"id_{k}": v for k, v in ids.items()}, **pos, **M)
-    (OUT / "counts.json").write_text(json.dumps(counts, indent=1))
+    (OUT / f"counts{name[2:]}.json").write_text(json.dumps(counts, indent=1))
     print(json.dumps(counts, indent=1))
 
 

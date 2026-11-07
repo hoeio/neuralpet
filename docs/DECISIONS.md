@@ -40,3 +40,29 @@
   outputs were never overwritten.
 - 008 permutes PN rows over all 149 PNs (including silent ones). The resulting DoOR-coverage caveat was
   found after the run (explore.py, labelled exploratory); the within-live-PN control goes to a new plan.
+
+## 2026-11-07: final session (WP1–WP7)
+- **Scope.** The human set the end state: confirmatory study (010), N2 nulls, a task off the floor, a
+  robustness model (011), the creature body (WP5a), a testable pet (012), a play app (WP6) and the final
+  report (WP7). No new research lines.
+- **Viewer rule superseded for play only.** The human explicitly asked for an interactive play app. The
+  research viewer stays read-only; the play app (`src/neuralpet_play/`, `play/`) follows the security
+  rules in docs/PLAY.md. CLAUDE.md viewer section updated.
+- **Independent fly = hemibrain v1.2** (public adjacency export on storage.googleapis.com, 46 MB, md5
+  from the object's x-goog-hash; "Hemibrain is licensed under CC-BY" on the Janelia hemibrain page).
+  Same selection rules as FlyWire, translated to hemibrain type names; same ≥5-synapse threshold, although
+  hemibrain synapse counts are not calibrated to FlyWire's (its KC→MBON layer has 17k edges vs 7.5k).
+- **Second odour source = Hallem & Carlson 2006**, taken from the DoOR.data per-receptor tables, only
+  the 57 odorants not in our DoOR panel. Searched for a PN/glomerulus response dataset from another lab
+  with a verifiable download and licence; none found quickly. Weaker than independent; said so in the plan.
+- **WP3 readout change:** fixed readout noise added to the ratio score so learning curves rise over
+  blocks; AULC replaces trials-to-criterion. Chosen on synthetic wiring (pilot grids 1–3).
+- **Random v1 odours dropped from 010:** at ceiling on the synthetic circuit wherever natural odours
+  were off the floor.
+- **All 010 contrasts are PN→KC only** (KC→MBON real), as in 007–009. 001/006 shuffled both layers; 003
+  showed the deficit sits in PN→KC.
+- **N2a = KC column permutation** among KCs with input (exact co-convergence, pairing destroyed);
+  **N2b = curveball within KC class**. Rationale in docs/NULLS.md.
+- **64 seeds** (1000–1063) from the power estimate in the plan.
+- **Smoke test before the plan commit:** seed 7 (outside the confirmatory range), two conditions, to time
+  a job. Its numbers were seen; no parameter changed afterwards (stated in the plan).
