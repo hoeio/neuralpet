@@ -38,3 +38,17 @@ All FlyWire-derived data lives in gitignored `data/`. Fetch: `uv run python scri
 `scripts/fetch_flywire.py --synapses` downloads `flywire_synapses_783.feather` (9.49 GB, Zenodo 10676866,
 same CC BY-NC 4.0 terms). `scripts/extract_shapes.py` samples per-neuron synapse positions into
 `data/mb/shapes.npz` for drawing. Not used by any experiment. Nothing derived is committed.
+
+## Added 2026-11-07 (experiments 010–012)
+
+- **Hemibrain v1.2** (an independent fly, right central brain): `scripts/fetch_hemibrain.py` downloads
+  `https://storage.googleapis.com/hemibrain/v1.2/exported-traced-adjacencies-v1.2.tar.gz` (46 MB, md5
+  `7B4HbRVELzaPpZeLAPSmHA==` base64, checked) into gitignored `data/hemibrain/`. Licence: the Janelia
+  hemibrain page states "Hemibrain is licensed under CC-BY" (checked 2026-11-07). Nothing derived is
+  committed except aggregate results. Cite: Scheffer LK et al. (2020) A connectome and analysis of the
+  adult Drosophila central brain. eLife 9:e57443. doi:10.7554/eLife.57443.
+- **Hallem & Carlson 2006** single-study ORN responses, read from the DoOR.data per-receptor tables
+  (column `Hallem.2006.EN`; `scripts/fetch_door.py` now downloads those 78 tables too). Same licence as
+  DoOR.data (CC BY-SA 4.0). Cite: Hallem EA, Carlson JR (2006) Coding of odors by a receptor repertoire.
+  Cell 125:143–160. doi:10.1016/j.cell.2006.01.050.
+- **FlyWire left hemisphere**: from the same Zenodo files, `scripts/extract_mb.py --side left`.

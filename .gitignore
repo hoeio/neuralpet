@@ -14,3 +14,5 @@ graft/
 .playwright-mcp/
 .viewer.log
 .tunnel.log
+play_data/
+.play.log

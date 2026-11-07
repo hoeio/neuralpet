@@ -42,3 +42,26 @@ syn_count, NT averages) + Schlegel et al. 2024 annotations (`cell_class`, `cell_
   model; these are different models and odour sets, so the numbers are not expected to match.
 - Speed: one experiment-001 run (1 seed × 1 condition, ~1,100 KC-code evaluations) takes 0.4–0.5 s on
   one M4 Pro core; the curveball shuffle is most of it. Brian2/Numba are not needed at this size.
+
+## Additional samples (2026-11-07, experiment 010)
+
+Same rules. FlyWire left: `scripts/extract_mb.py --side left` → `mb_left.npz`. Hemibrain v1.2: `scripts/extract_hemibrain.py` → `mb_hemibrain.npz` (rules in the script docstring; no positions). FlyWire right re-extracted with the updated script: every array byte-identical to the earlier file.
+
+| item | FW right | FW left | hemibrain |
+|---|---|---|---|
+| kc | 2597 | 2580 | 1927 |
+| mbon | 48 | 48 | 44 |
+| dan | 165 | 166 | 159 |
+| apl | 1 | 1 | 1 |
+| pn | 149 | 146 | 134 |
+| n_uniglomerular_pn | 120 | 117 | 111 |
+| n_glomeruli_or_mPN | 84 | 84 | 78 |
+| W_pnkc_edges | 10505 | 11004 | 10074 |
+| W_pnkc_synapses | 143275 | 173587 | 182201 |
+| W_kcmbon_edges | 7485 | 7344 | 17026 |
+| W_kcmbon_synapses | 55237 | 52322 | 226135 |
+| kc_with_no_pn_input | 233 | 221 | 174 |
+| kc_with_no_mbon_output | 201 | 114 | 0 |
+| pn_inputs_per_kc_mean | 4.05 | 4.27 | 5.23 |
+
+Hemibrain synapse counts are not calibrated to FlyWire's: at the same ≥5 threshold its KC→MBON layer has 2.3× the edges. Everything is compared within sample (paired seeds), never across samples.

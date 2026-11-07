@@ -29,11 +29,13 @@ from urllib.parse import parse_qs, urlparse
 
 import numpy as np
 
-from neuralpet.pet import FRAC, Pet
+from neuralpet import creature as C
+from neuralpet.creature import FRAC, Creature
+from neuralpet.odors import door_odors
 
 ROOT = Path(__file__).resolve().parents[1]
 HOST, PORT = "127.0.0.1", int(os.environ.get("NEURALPET_PORT", 8797))
-STEPS_PER_S = 15
+STEPS_PER_S = 1 / C.TICK     # real time: one brain tick per 0.2 s
 B36 = "0123456789abcdefghijklmnopqrstuvwxyz"
 
 
@@ -89,36 +91,43 @@ def brain_geometry(d):
 class Sim(threading.Thread):
     def __init__(self, d):
         super().__init__(daemon=True)
-        self.label = "FlyWire v783, right mushroom body (real wiring)"
-        self.pet = Pet(d["W_pnkc"], d["W_kcmbon"], d["glom_of_pn"], seed=int(time.time()) % 10000)
+        self.label = "FlyWire v783, right mushroom body (real wiring), WP5a body"
+        odors = door_odors(d["glom_names"], d["glom_of_pn"])[0]
+        self.pet = Creature(d["W_pnkc"], d["W_kcmbon"], odors, seed=int(time.time()) % 10000)
         k = int(FRAC * d["W_pnkc"].shape[1])
         self.mbon_ref = np.maximum(k * d["W_kcmbon"].mean(0), 1e-9)   # expected drive of an average code
         self.lock, self.history = threading.Lock(), []
         self.frames = collections.deque(maxlen=150)
         self.world = {}
+        self.step = 0
 
     def run(self):
         while True:
             t0 = time.time()
             with self.lock:
                 n_ev = len(self.pet.events)
-                self.pet.step()
+                self.pet.tick()
+                self.step += 1
                 p, b = self.pet, self.pet.last
-                if p.t % 30 == 1:
-                    self.history.append([p.t, *np.round(p.learned_valence(), 4).tolist()])
+                if not p.alive:
+                    self.pet = Creature(p.W_pk, p.W_km, p.odors, seed=p.seed + 1)
+                    continue
+                if self.step % 30 == 1:
+                    self.history.append([self.step, *np.round(p.preferences([o for _, o in p.roles]), 4).tolist()])
                     self.history = self.history[-400:]
                 self.frames.append(dict(
-                    t=p.t, pos=p.pos.round(4).tolist(), heading=round(float(p.heading), 3),
+                    t=self.step, pos=(p.body.head / C.ARENA).round(4).tolist(), heading=round(p.body.heading, 3),
+                    body=(p.body.x / C.ARENA).round(4).tolist(),
                     energy=round(p.energy, 3), curiosity=round(p.curiosity, 3),
                     kc=base64.b64encode(np.packbits(b["kc"] > 0).tobytes()).decode(),
                     pn=q36(b["pn"], 2.0), mbon=q36(b["mbon"] / self.mbon_ref, 2.0),
                     da_r=round(float(b["da_r"]), 3), da_p=round(float(b["da_p"]), 3),
                     v=[round(b["v_left"], 4), round(b["v_right"], 4)],
-                    events=[e for _, e in p.events[n_ev:]]))
-                self.world = dict(sources=[dict(pos=s.pos.round(4).tolist(), kind=s.kind) for s in p.sources],
+                    events=[e for _, e, _ in p.events[n_ev:]]))
+                self.world = dict(sources=[dict(pos=(s.pos / C.ARENA).round(4).tolist(), kind=s.kind) for s in p.sources],
                                   wiring=self.label,
-                                  n_eat=sum(e == "eat" for _, e in p.events),
-                                  n_toxic=sum(e == "toxic" for _, e in p.events))
+                                  n_eat=sum(e == "eat" for _, e, _ in p.events),
+                                  n_toxic=sum(e == "toxic" for _, e, _ in p.events))
             time.sleep(max(0.0, 1 / STEPS_PER_S - (time.time() - t0)))
 
 

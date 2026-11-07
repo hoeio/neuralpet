@@ -42,7 +42,7 @@ def _angles(x):
 
 
 @njit(cache=True)
-def _simulate(x, phi, th_prev, n_steps, amp, freq, steer, c_t, c_n, L0, arena, effort_out):
+def _simulate(x, phi, th_prev, n_steps, amp, freq, steer, c_t, c_n, L0, arena, effort_out, tau_max, k_bend):
     n_nodes = x.shape[0]
     n_j = n_nodes - 2
     dphi = 2 * np.pi * WAVES / n_j
@@ -63,9 +63,9 @@ def _simulate(x, phi, th_prev, n_steps, amp, freq, steer, c_t, c_n, L0, arena, e
         th = _angles(x)
         F[:] = 0.0
         for j in range(n_j):
-            tau_m = TAU_MAX * (amp * np.sin(phi[j]) + steer)
-            effort += (tau_m / TAU_MAX) ** 2 * DT / n_j
-            tau = -K_BEND * th[j] - C_BEND * (th[j] - th_prev[j]) / DT + tau_m
+            tau_m = tau_max * (amp * np.sin(phi[j]) + steer)
+            effort += (tau_m / tau_max) ** 2 * DT / n_j
+            tau = -k_bend * th[j] - C_BEND * (th[j] - th_prev[j]) / DT + tau_m
             th_prev[j] = th[j]
             # +tau on the front link (nodes j+1 -> j), -tau on the link behind (nodes j+2 -> j+1)
             for (a, b, s) in ((j + 1, j, 1.0), (j + 2, j + 1, -1.0)):
@@ -126,7 +126,7 @@ class Body:
     def step(self, seconds, amp, freq, steer=0.0):
         n = int(round(seconds / DT))
         _simulate(self.x, self.phi, self.th_prev, n, float(amp), float(freq), float(steer),
-                  self.c_t, self.c_n, self.L0, self.arena, self.effort)
+                  self.c_t, self.c_n, self.L0, self.arena, self.effort, TAU_MAX, K_BEND)
         self.t += n * DT
 
     @property
