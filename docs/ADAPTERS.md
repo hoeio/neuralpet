@@ -95,3 +95,14 @@ Fixed on synthetic wiring only (`experiments/010/pilot.py`, grids 1–3, results
   after training B.
 - Random v1 odours are not used in 010: on the synthetic random circuit they were at ceiling
   (plateau 1.0) at every setting that put natural odours off the floor.
+
+## v7 — 2026-11-07: realistic-model variant (experiment 011; src/neuralpet/apl.py)
+- **Graded APL.** KC rate r_k = clip((d_k − g·A_k·I)/D, 0, 1), APL activity I = Σ B_k r_k / Σ B_k,
+  A_k = APL→KC synapses (normalised to mean 1), B_k = KC→APL synapses, real counts of each sample. Damped
+  fixed-point iteration (30 steps, 0.5) + one undamped step. D = mean positive drive for 500 random v1
+  odours on the real wiring. g by bisection so 10% of KCs have r > 0 for those odours on the real wiring;
+  the same g for all wiring conditions. Calibrated values (printed by the run): FW right g ≈ 30.2, FW
+  left ≈ 31.8, hemibrain ≈ 32.2.
+- **Compartment DA.** P = MBONs receiving ≥ 20 synapses from any PPL1 DAN (v3 rule). Punishment DA
+  depresses KC→MBON only onto P; choice score = Σ_{m∈P} R_m(W_t) / Σ_{m∈P} R_m(W_0) + readout noise.
+  The plasticity rule with graded KCs: W_im ← W_im·(1 − η·DA·r_i).
