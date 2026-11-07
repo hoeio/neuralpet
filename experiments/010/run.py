@@ -150,9 +150,13 @@ def main():
     ap.add_argument("--seeds", type=int, default=64)
     ap.add_argument("--procs", type=int, default=10)
     ap.add_argument("--report-only", action="store_true")
+    ap.add_argument("--results", default="results_registered", help="results dir; 'results' = the deviation run (DEVIATION.md)")
     a = ap.parse_args()
+    global OUT
+    if a.results == "results":
+        OUT = OUT / "deviation"
     OUT.mkdir(parents=True, exist_ok=True)
-    res = HERE / "results"
+    res = HERE / a.results
     if not a.report_only:
         jobs = [(SEED0 + s, smp, c) for s in range(a.seeds) for smp in SAMPLES for c in nulls.CONDS]
         t = time.time()

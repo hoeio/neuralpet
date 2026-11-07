@@ -9,7 +9,7 @@ import numpy as np
 from neuralpet import mb
 
 # fixed by the synthetic pilot (experiments/010/pilot.py), registered in docs/ADAPTERS.md v6
-P = dict(n=12, eta=0.01, sig_train=0.2, sig_test=1.0, sig_out=0.05, blocks=12, blocks_b=6, reps=12)
+P = dict(n=8, eta=0.02, sig_train=0.2, sig_test=1.0, sig_out=0.01, blocks=12, blocks_b=6, reps=12)
 
 
 def apl_kwta(drive, frac):
