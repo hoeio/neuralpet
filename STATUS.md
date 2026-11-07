@@ -1,4 +1,11 @@
-# STATUS (updated 2026-11-06)
+# STATUS (updated 2026-11-08)
+
+## Final session progress (2026-11-07/08)
+- WP3, WP2, WP1 (010), WP4 (011), WP5a (creature body), WP5 (012) done and committed; tables in
+  reports/010, 011, 012. Life criteria: docs/LIFE_CRITERIA.md. Tag `research-freeze` after 012.
+- Next: WP6 play app commit (src/neuralpet_play, play/), then WP7 final report (scripts/make_final_report.py
+  → reports/FINAL.md), audit, clean reproduction, tag v1.0.
+
 
 ## What exists
 - `scripts/fetch_flywire.py`: downloads FlyWire v783 connections (Zenodo 10676866, md5-checked) and

@@ -66,3 +66,16 @@
 - **64 seeds** (1000–1063) from the power estimate in the plan.
 - **Smoke test before the plan commit:** seed 7 (outside the confirmatory range), two conditions, to time
   a job. Its numbers were seen; no parameter changed afterwards (stated in the plan).
+
+## 2026-11-08
+- **Play code was drafted before the `research-freeze` tag but committed only after it.** No play file
+  was in any commit before the tag; the play package only imports `neuralpet`.
+- **Play: a new whiff replaces the previous one and lasts 8 s** (was 20 s). The first recorded teaching
+  run scolded the praised smell too, because its whiff was still there 10 s later. Play config only.
+- **Play: `steer_gain` = 100** instead of the research `K_CONTRAST` = 25, set inside the play process
+  only (docs/PLAY.md). With 25, a check with forced valence showed almost no chemotaxis. This is tuned on
+  behaviour, which rule 5 forbids for research; it is allowed here because the play app never feeds
+  results. The research constant stays as registered; the weak steering is reported as a finding.
+- **Play: optional `seed`** in play config so the recorded teaching run is reproducible (null = random).
+- **Teaching demo, second approach test** (toy 1 BL away, 90 s, 8 copies) added after the first (2.5 BL)
+  showed no difference; both are reported.

@@ -21,3 +21,10 @@ delete the big file to free space (I will not delete data). It is re-downloadabl
   `scripts/fetch_flywire.py --synapses`. I did not delete it.
 - **Licence of the code:** no earlier decision was found, so the code is MIT (LICENSE). Data keep their own
   licences (FlyWire CC BY-NC 4.0, hemibrain CC BY 4.0, DoOR CC BY-SA 4.0) and are not in the repo.
+
+## 2026-11-08
+- **Brain-driven steering is weak under the registered constants.** With `K_CONTRAST` = 25 a forced
+  valence of ±0.3 barely changes how close the creature gets to a source 1 BL away (exploratory check,
+  docs/PLAY.md); 4× the gain gives clear approach and avoidance. Recommendation: a new pre-registered
+  experiment (013) that fixes the steering gain on the modulation-off synthetic pilot with an explicit
+  chemotaxis criterion, then repeats the 012 comparisons. Not done here (outside WP1–WP7).
