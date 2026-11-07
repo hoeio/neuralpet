@@ -32,9 +32,10 @@ steering turns towards that smell. Scold instead and the valence falls; it turns
 "Personality" are that valence.
 
 **Play-only steering gain.** The play pet uses `steer_gain` = 100 (play/config.json) instead of the
-registered research value `K_CONTRAST = 25`. With 25 the creature shows almost no chemotaxis (a check
-with valence forced to ±0.3 and a source 1 BL away, 16 runs of 90 s: distance change +1.86 BL with
-steering vs +2.14 without; −0.3 gave +1.92), so taught preferences would never show in behaviour. The
+registered research value `K_CONTRAST = 25`. With 25 the creature shows no measurable chemotaxis: in an
+exploratory check (`experiments/explore/steer_check.py`, valence forced to ±0.3, a smell 1 BL away, 3
+odorants × 16 runs of 90 s) liked, disliked and steering-off pets end up equally far from the smell; with
+100 the liked smell is approached and the disliked one avoided (numbers in reports/FINAL.md), so taught preferences would never show in behaviour. The
 gain was picked by looking at that approach check, i.e. it is tuned, which is allowed only here: it is
 set inside the play process, never in research runs, and no research result uses it. The research
 consequence (weak brain-driven steering under the registered constants) is reported in reports/FINAL.md.
