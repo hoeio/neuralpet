@@ -1,0 +1,22 @@
+{
+ "seeds": [
+  1000,
+  1063
+ ],
+ "task": {
+  "n": 12,
+  "eta": 0.01,
+  "sig_train": 0.2,
+  "sig_test": 1.0,
+  "sig_out": 0.05,
+  "blocks": 12,
+  "blocks_b": 6,
+  "reps": 12
+ },
+ "literal": {
+  "fw_right": 0.5523919907585676,
+  "fw_left": 0.5710093023255814,
+  "hemibrain": 0.6133834976647639
+ },
+ "wall_s": 229.6
+}
