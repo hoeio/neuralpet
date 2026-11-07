@@ -127,7 +127,9 @@
     // minimap: whole arena, view window, sources, pet
     const m = W * 0.26, mx = W - m - 8, my = 8, ms = m / S.arena, md = (v) => ((v % A) + A) % A, M = (p) => [mx + md(p[0]) * ms, my + m - md(p[1]) * ms];
     ctx.fillStyle = "rgba(255,255,255,.55)"; ctx.fillRect(mx, my, m, m); ctx.strokeStyle = css("--ink2"); ctx.strokeRect(mx, my, m, m);
-    { const [a, b] = M(cam); ctx.strokeRect(a - half * ms, b - half * ms, VIEW * ms, VIEW * ms); }
+    { const [a, b] = M(cam); ctx.save(); ctx.beginPath(); ctx.rect(mx, my, m, m); ctx.clip();   // view window, wrapped on the torus
+      for (const dx of [-m, 0, m]) for (const dy of [-m, 0, m]) ctx.strokeRect(a - half * ms + dx, b - half * ms + dy, VIEW * ms, VIEW * ms);
+      ctx.restore(); }
     for (const s of S.sources) if (s.active) { const [a, b] = M(s.pos); ctx.fillStyle = s.kind === "food" ? css("--food") : s.kind === "toy" ? css("--toy") : css("--toxic"); ctx.fillRect(a - 2, b - 2, 4, 4); }
     { const [a, b] = M(hd); ctx.fillStyle = css("--skin2"); ctx.beginPath(); ctx.arc(a, b, 3, 0, 7); ctx.fill(); }
     drawKC();
