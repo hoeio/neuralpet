@@ -40,7 +40,6 @@ def early():
     N["e004_m1"] = ci(pair(d, "real", "shuffle", "M1_trials", sparsity="sparse"), 0)
     N["e004_m2"] = ci(pair(d, "real", "shuffle", "M2_auc_sigma1.0", sparsity="sparse"))
     d = pd.read_csv(E / "005" / "results" / "runs.csv")
-    d5 = d[d.grouping == d.grouping.unique()[0]]
     N["e005_groupings"] = list(map(str, d.grouping.unique()))
     d = pd.read_csv(E / "006" / "results" / "runs.csv")
     N["e006_m2_door"] = ci(pair(d, "real", "shuffle", "M2_ratio", sparsity="sparse", source="door"))

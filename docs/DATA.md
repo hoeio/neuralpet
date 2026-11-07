@@ -47,6 +47,11 @@ same CC BY-NC 4.0 terms). `scripts/extract_shapes.py` samples per-neuron synapse
   hemibrain page states "Hemibrain is licensed under CC-BY" (checked 2026-11-07). Nothing derived is
   committed except aggregate results. Cite: Scheffer LK et al. (2020) A connectome and analysis of the
   adult Drosophila central brain. eLife 9:e57443. doi:10.7554/eLife.57443.
+- **DoOR 2.0** consensus odorant responses (experiments 006–012, the play app): `scripts/fetch_door.py`
+  downloads the tables from github.com/ropensci/DoOR.data (branch `master`, not pinned to a commit) into
+  gitignored `data/door/`. Licence CC BY-SA 4.0 (noted in docs/LITERATURE.md, 2026-11-06). Cite: Münch D,
+  Galizia CG (2016) DoOR 2.0 — Comprehensive mapping of Drosophila melanogaster odorant responses.
+  Sci Rep 6:21841. doi:10.1038/srep21841.
 - **Hallem & Carlson 2006** single-study ORN responses, read from the DoOR.data per-receptor tables
   (column `Hallem.2006.EN`; `scripts/fetch_door.py` now downloads those 78 tables too). Same licence as
   DoOR.data (CC BY-SA 4.0). Cite: Hallem EA, Carlson JR (2006) Coding of odors by a receptor repertoire.

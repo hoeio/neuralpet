@@ -35,7 +35,7 @@ steering turns towards that smell. Scold instead and the valence falls; it turns
 registered research value `K_CONTRAST = 25`. With 25 the creature shows no measurable chemotaxis: in an
 exploratory check (`experiments/explore/steer_check.py`, valence forced to ±0.3, a smell 1 BL away, 3
 odorants × 16 runs of 90 s) liked, disliked and steering-off pets end up equally far from the smell; with
-100 the liked smell is approached and the disliked one avoided (numbers in reports/FINAL.md), so taught preferences would never show in behaviour. The
+100 the liked smell is approached and the disliked one avoided (numbers in reports/FINAL.md). With 25, taught preferences would not show in behaviour. The
 gain was picked by looking at that approach check, i.e. it is tuned, which is allowed only here: it is
 set inside the play process, never in research runs, and no research result uses it. The research
 consequence (weak brain-driven steering under the registered constants) is reported in reports/FINAL.md.
