@@ -7,8 +7,9 @@ validation) on a temporary save dir, with the real FlyWire genome if present.
 Protocol (fixed before running): 6 teaching rounds, each = offer A, wait 3 s, praise; wait 7 s;
 offer B, wait 3 s, scold; wait 7 s (20 s of pet time per round, 2 min in total, ~24 actions).
 Before and after: approach test for each smell = a toy of that smell is put 2.5 body lengths
-to the pet's side; we record the head's distance to it after 40 s (fresh copies of the pet, so the
-test itself teaches nothing). Pet time runs faster than wall time here; in the app it is real time.
+to the pet's side; we record the change in the head's distance to it over 40 s (fresh copies of the
+pet, so the test itself teaches nothing). A second test (1 BL, 90 s, 8 copies) was added after the
+first showed nothing; see docs/PLAY.md. Pet time runs faster than wall time here; in the app it is real time.
 """
 import copy
 import types
@@ -66,7 +67,7 @@ def main():
     out = dict(genome=g.genome_label, liked=A, disliked=B, control=CTRL, trace=trace,
                approach_before=before, approach_after=after, approach_near=near,
                approach_near_before=before_near, approach_near_after=after_near, pet_time_s=round(g.pet.t - t0, 1),
-               note="approach = change in head distance to a toy of that smell over 40 s (negative = moved closer), mean of 4 copies")
+               note="approach_* = change in head distance to a toy of that smell (negative = moved closer); approach_before/after: 2.5 BL, 40 s, mean of 4 copies; approach_near_*: settings in approach_near")
     (ROOT / "docs" / "play_teach.json").write_text(json.dumps(out, indent=1))
     import matplotlib
     matplotlib.use("Agg")

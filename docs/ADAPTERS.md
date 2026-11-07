@@ -144,3 +144,10 @@ too easy; round 7: final values below (median time above zero 1.0, mean energy 0
   KC code at the head at the moment of contact.
 - Mortality (precariousness): 120 s continuously at zero energy ends the individual (research; the play
   app uses torpor instead unless `hard_mode`).
+
+
+## Play-only adapter values (2026-11-08; never used by any research result)
+The play app (`src/neuralpet_play/`, docs/PLAY.md) changes one output → action value inside its own
+process: steering gain `K_CONTRAST` = `steer_gain` from play/config.json (100) instead of the registered
+25 (v8). Chosen by looking at behaviour (tuned), which is why it is confined to play. `tests/test_freeze.py`
+checks the registered value before reproducing 012.

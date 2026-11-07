@@ -35,7 +35,8 @@ steering turns towards that smell. Scold instead and the valence falls; it turns
 registered research value `K_CONTRAST = 25`. With 25 the creature shows no measurable chemotaxis: in an
 exploratory check (`experiments/explore/steer_check.py`, valence forced to ±0.3, a smell 1 BL away, 3
 odorants × 16 runs of 90 s) liked, disliked and steering-off pets end up equally far from the smell; with
-100 the liked smell is approached and the disliked one avoided (numbers in reports/FINAL.md). With 25, taught preferences would not show in behaviour. The
+100 a liked smell reduces the drift away from it, while avoidance is not distinguishable from steering off
+(numbers in reports/FINAL.md). With 25, taught preferences would not show in behaviour. The
 gain was picked by looking at that approach check, i.e. it is tuned, which is allowed only here: it is
 set inside the play process, never in research runs, and no research result uses it. The research
 consequence (weak brain-driven steering under the registered constants) is reported in reports/FINAL.md.
@@ -59,8 +60,9 @@ linalool is never taught. Raw numbers: `docs/play_teach.json`; chart: `docs/play
 Reading: the valences move the right way within a minute. In behaviour, the **dislike shows** (the pet
 moves away from the scolded smell more than from the untaught one in the 1 BL test) but the **like does
 not** (the praised smell is not approached more than the untaught one). The 2.5 BL test, the first one
-we ran, is too far from the source to show anything (plume σ = 0.8 BL). The second test was fixed after
-seeing the first and before running it.
+we ran, is too far from the source to show anything (plume σ = 0.8 BL). The second test was chosen after
+seeing the first and before running it. The forced-valence check (FINAL.md) shows the opposite pattern
+(attraction, not avoidance); with one pet neither pattern is established.
 
 ## Life
 - Real time at `speed` (play/config.json). When you come back after being away, the pet fast-forwards

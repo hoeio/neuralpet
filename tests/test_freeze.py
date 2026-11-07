@@ -34,6 +34,7 @@ def test_010_slice_unchanged():
 
 def test_012_slice_unchanged():
     r = load("r012", ROOT / "experiments" / "012" / "run.py")
+    r.check_constants()            # also catches a play Game having changed creature.K_CONTRAST in this process
     ref = pd.read_csv(ROOT / "experiments" / "012" / "results" / "main.csv")
     seed = int(ref.seed.min())
     out, _, _ = r.life(seed, "on")
@@ -45,7 +46,8 @@ def test_012_slice_unchanged():
 def test_research_code_unchanged_since_tag():
     """The play app may only import the research code: src/neuralpet and experiments/ equal the tag."""
     import subprocess
-    out = subprocess.run(["git", "diff", "--name-only", "research-freeze", "--", "src/neuralpet", "experiments"],
+    out = subprocess.run(["git", "diff", "--name-only", "research-freeze", "--", "src/neuralpet", "experiments",
+                          ":(exclude)experiments/explore"],   # post-hoc exploratory scripts are added after the freeze
                          cwd=ROOT, capture_output=True, text=True, check=True).stdout.strip()
     assert out == "", out
 

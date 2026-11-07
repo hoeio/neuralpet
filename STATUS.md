@@ -1,11 +1,16 @@
 # STATUS (updated 2026-11-08)
 
-## Final session progress (2026-11-07/08)
-- WP3, WP2, WP1 (010), WP4 (011), WP5a (creature body), WP5 (012) done and committed; tables in
-  reports/010, 011, 012. Life criteria: docs/LIFE_CRITERIA.md. Tag `research-freeze` after 012.
-- Next: WP6 play app commit (src/neuralpet_play, play/), then WP7 final report (scripts/make_final_report.py
-  → reports/FINAL.md), audit, clean reproduction, tag v1.0.
-
+## State: complete (v1.0, 2026-11-08)
+- Final report: `reports/FINAL.md` (built by `scripts/make_final_report.py`), figures in `reports/figures/`,
+  independent audit `reviews/final.md` and response `reviews/final_response.md`.
+- Confirmatory experiments 010 (wiring replication), 011 (graded APL + compartment DA), 012 (creature);
+  plans committed before runs; deviation runs kept and labelled. Life criteria: `docs/LIFE_CRITERIA.md`.
+- Play app (WP6): `scripts/run_play.sh` → 127.0.0.1:8798, docs/PLAY.md; built on tag `research-freeze`.
+  Research viewer: `scripts/run_viewer.sh` → 127.0.0.1:8797.
+- Reproduction from a fresh clone: `docs/REPRODUCTION.md`.
+- For the human: `docs/OPEN_QUESTIONS.md` (named tunnel + Cloudflare Access then token rotation; the
+  9.5 GB synapse file can be deleted; a pre-registered 013 on steering gain). Nothing in BLOCKERS is open.
+- The sections below are the history up to 2026-11-06 (experiments 001–009), kept for context.
 
 ## What exists
 - `scripts/fetch_flywire.py`: downloads FlyWire v783 connections (Zenodo 10676866, md5-checked) and

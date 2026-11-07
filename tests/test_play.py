@@ -196,6 +196,28 @@ def test_crash_while_saving_keeps_last_good_save():
     assert h.pet.t > 0
 
 
+def test_refused_post_body_is_not_a_second_request():
+    """A refused POST must not leave its body to be parsed as another request (HTTP/1.1 desync)."""
+    import socket
+    s = Server()
+    smuggled = f"GET /?t=wrongtoken HTTP/1.1\r\nHost: {s.host}\r\n\r\n".encode()
+    head = (f"POST /api/action HTTP/1.1\r\nHost: {s.host}\r\nContent-Type: application/json\r\n"
+            f"Content-Length: {len(smuggled)}\r\n\r\n").encode()
+    with socket.create_connection(("127.0.0.1", s.port), timeout=5) as c:
+        c.sendall(head + smuggled)
+        data = b""
+        while True:
+            try:
+                chunk = c.recv(65536)
+            except socket.timeout:
+                break
+            if not chunk:
+                break
+            data += chunk
+    assert data.count(b"HTTP/1.1 ") == 1, data                      # one response, then the connection closes
+    assert not s.app.fail_rl.hits.get("auth")                        # the smuggled bad token never ran
+
+
 if __name__ == "__main__":
     for k, v in list(globals().items()):
         if k.startswith("test_"):

@@ -25,6 +25,9 @@ delete the big file to free space (I will not delete data). It is re-downloadabl
 ## 2026-11-08
 - **Brain-driven steering is weak under the registered constants.** With `K_CONTRAST` = 25 a forced
   valence of ±0.3 barely changes how close the creature gets to a source 1 BL away (exploratory check,
-  docs/PLAY.md); 4× the gain gives clear approach and avoidance. Recommendation: a new pre-registered
+  docs/PLAY.md); 4× the gain makes a liked smell reduce the drift away from it; avoidance stayed indistinguishable from steering off. Recommendation: a new pre-registered
   experiment (013) that fixes the steering gain on the modulation-off synthetic pilot with an explicit
   chemotaxis criterion, then repeats the 012 comparisons. Not done here (outside WP1–WP7).
+  The same new plan should also match the rule-6 generic substitute on its *realised* reward dopamine
+  (in 012 it was matched only in expectation: reports/FINAL.md, reviews/final.md #3) and include a
+  learning-off condition.

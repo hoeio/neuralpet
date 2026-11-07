@@ -103,6 +103,91 @@ def forest(t010, t011, t012):
     plt.close(fig)
 
 
+def fmt(x, d=4):
+    m, lo, hi = stats.boot_ci(np.asarray(x, float))
+    return f"{m:+.{d}f} [{lo:+.{d}f}, {hi:+.{d}f}]"
+
+
+def excl0(x):
+    _, lo, hi = stats.boot_ci(np.asarray(x, float))
+    return lo > 0 or hi < 0
+
+
+def audit_numbers():
+    """Numbers added after the independent audit (reviews/final.md), computed from raw results."""
+    A = {}
+    d = pd.read_csv(ROOT / "experiments" / "010" / "results_registered" / "runs.csv")
+    for sp in ("sparse", "literal"):
+        p = d[d.sparsity == sp].groupby(["seed", "cond"]).m2.mean().unstack()
+        A[f"real_random_{sp}"] = fmt(p.real - p.random)
+        A[f"shuffle_random_{sp}"] = fmt(p.shuffle - p.random)
+        A[f"real_random_{sp}_pos"] = excl0(p.real - p.random) and (p.real - p.random).mean() > 0
+    q = d[d.sparsity == "sparse"].pivot_table(index="seed", columns=["sample", "source", "cond"], values="m2")
+    cells = {}
+    for smp in d["sample"].unique():
+        for src in d.source.unique():
+            cells[(smp, src)] = q[(smp, src, "real")] - q[(smp, src, "shuffle")]
+    A["h1_cells_total"] = len(cells)
+    A["h1_cells_incl0"] = sum(not excl0(v) for v in cells.values())
+    worst = min(cells, key=lambda k: cells[k].mean())
+    A["h1_worst_cell"] = f"{worst[0]} × {worst[1]}: {fmt(cells[worst])}"
+    for smp in ("fw_right", "fw_left"):
+        A[f"h1_{smp}_incl0"] = not excl0(q.xs(smp, axis=1, level=0).xs("real", axis=1, level=1).mean(axis=1)
+                                         - q.xs(smp, axis=1, level=0).xs("shuffle", axis=1, level=1).mean(axis=1))
+    m = pd.read_csv(ROOT / "experiments" / "012" / "results" / "main.csv")
+    da = m.pivot(index="seed", columns="cond", values="mean_da_r")
+    meals = m.pivot(index="seed", columns="cond", values="meals")
+    ok = meals["on"] > 0
+    ratio = (da["generic"] / da["on"])[ok & (da["on"] > 0)]
+    A["gen_n"] = int(len(ratio))
+    A["gen_zero"] = int(((da["generic"] == 0) & ok).sum())
+    A["gen_half"] = int((ratio < 0.5).sum())
+    A["gen_median"] = f"{ratio.median():.2f}"
+    A["const_ratio"] = f"{(da['const'] / da['on'])[ok & (da['on'] > 0)].median():.3f}"
+    # individuality: cluster bootstrap (resample individuals / histories), CI of the difference
+    ind = pd.read_csv(ROOT / "experiments" / "012" / "results" / "indiv.csv")
+    ind["P"] = ind.pref.map(lambda x: np.array(json.loads(x)))
+    own = np.stack(ind[ind.rep == 0].sort_values("hist").P)
+    groups = [np.stack(g.P) for _, g in ind.groupby("hist") if len(g) > 1]
+    D = np.linalg.norm(own[:, None] - own[None], axis=2)
+    rng = np.random.default_rng(0)
+    diffs, dh, dn = [], [], []
+    for _ in range(5000):
+        i = rng.integers(0, len(own), len(own))
+        sub = D[np.ix_(i, i)]
+        mask = i[:, None] < i[None]                       # distinct individuals only
+        a = sub[mask].mean()
+        gs = [groups[k] for k in rng.integers(0, len(groups), len(groups))]
+        b = np.mean([np.linalg.norm(G[x] - G[y]) for G in gs for x in range(len(G)) for y in range(x + 1, len(G))])
+        dh.append(a); dn.append(b); diffs.append(a - b)
+    pc = lambda v: f"[{np.percentile(v, 2.5):.3f}, {np.percentile(v, 97.5):.3f}]"
+    A["ind_cluster_hist"], A["ind_cluster_noise"] = pc(dh), pc(dn)
+    A["ind_cluster_diff"] = f"{np.mean(diffs):+.3f} {pc(diffs)}"
+    A["ind_cluster_diff_pos"] = np.percentile(diffs, 2.5) > 0
+    # steering check, paired with steering off (same seed and odorant)
+    sc = pd.read_csv(ROOT / "experiments" / "explore" / "results" / "steer_check.csv")
+    off = sc[(sc.gain == 25.0) & (~sc.steering) & (sc.valence > 0)].set_index(["odor", "run"]).d_dist
+    for g in (25.0, 100.0):
+        for v in (0.3, -0.3):
+            on = sc[(sc.gain == g) & sc.steering & (np.isclose(sc.valence, v))].set_index(["odor", "run"]).d_dist
+            A[f"steer_paired_{g:.0f}_{v:+.1f}"] = fmt(on - off.loc[on.index], 2)
+    return A
+
+
+def plan012_verdict(S):
+    """Apply experiments/012/PLAN.md's decision rules to the confirmatory family."""
+    sig = {k: float(r[6]) < 0.05 for k, r in S.items()}
+    sign = {k: np.sign(ci_cell(r[3])[0]) for k, r in S.items()}
+    matters = any(sig[("S1", m)] and sig[("S2", m)] and sign[("S1", m)] == sign[("S2", m)] for m in ("survival_s", "mean_energy"))
+    s1_only = any(sig[("S1", m)] for m in ("survival_s", "mean_energy")) and not matters
+    wiring = any(sig[("S3", m)] and sign[("S3", m)] > 0 for m in ("survival_s", "mean_energy"))
+    bound = {"mean_energy": 0.02, "survival_s": 60.0}
+    equiv = all(-bound[m] < ci_cell(S[(t, m)][3])[1] and ci_cell(S[(t, m)][3])[2] < bound[m]
+                for t in ("S1", "S2") for m in bound)
+    widest = {m: max(ci_cell(S[(t, m)][3])[2] - ci_cell(S[(t, m)][3])[1] for t in ("S1", "S2")) / (2 * bound[m]) for m in bound}
+    return dict(matters=matters, s1_only=s1_only, wiring=wiring, equiv=equiv, widest=widest)
+
+
 def main():
     FIG.mkdir(parents=True, exist_ok=True)
     N = FN.early()
@@ -138,6 +223,26 @@ def main():
     life = (ROOT / "docs" / "LIFE_CRITERIA.md").read_text().split("\n\n", 2)[2].split("\n\nWhat these criteria", 1)[0].strip()
     died_on = num(cm["on"][2])
 
+    A = audit_numbers()
+    cm011 = {r[1]: r for r in rows(t011, "Condition means") if r[0] == "apl_comp"}
+    kc011 = {k: cm011[k][5].split()[0] for k in cm011}
+    aulc011_h2 = find(rows(t011, "Secondary: AULC per variant"), "H2")[1]
+    ps = rows(t010, "Per connectome sample and per odour source (M2; descriptive, not in the family)")
+    h2_cells = [ci_cell(c) for r in ps if r[0] == "H2" for c in r[2:]]
+    h2_every = ("It held (CI above 0) in every sample and both odour sources, in both code settings."
+                if all(lo > 0 for _, lo, _ in h2_cells) else "It did not hold in every sample and odour source (see per-sample table).")
+    rep = {k: H[k][8].startswith("replicated") for k in H}
+    repl_text = "; ".join(f"{hh}: " + ", ".join(f"{sp} {'replicated' if rep[(hh, sp)] else 'not replicated'}" for sp in ("sparse", "literal"))
+                          for hh in ("H1", "H2", "H3"))
+    V = plan012_verdict(S)
+    v12_text = (("all S1/S2 CIs are within ±0.02 mean energy and ±60 s survival" if V["equiv"] else
+                 f"the S1/S2 CIs are up to {V['widest']['mean_energy']:.1f}× (energy) and {V['widest']['survival_s']:.1f}× (survival) "
+                 "wider than the ±0.02 / ±60 s equivalence bounds")
+                + ("; the plan's rule for \"the state rule matters\" (S1 and S2 significant, same sign) is met" if V["matters"]
+                   else "; the plan's rule for \"the state rule matters\" (S1 and S2 significant, same sign) is not met")
+                + ("; real wiring helps the pet (S3)" if V["wiring"] else "; nor is the rule for \"real wiring helps the pet\" (S3)"))
+    lit_text = ", ".join(f"{k} {v:.2f}" for k, v in meta010["literal"].items())
+
     def h(k, s):
         r = H[(k, s)]
         return f"{r[3]} (d_z {r[5]}, Holm p {r[7]}; {r[8]})"
@@ -155,40 +260,51 @@ projection neurons, dopamine rules, readout, body, metabolism) is a rule we desi
 
 ## Headline findings
 
-1. **Real mushroom-body partners do not help associative learning compared with a degree-preserving
-   shuffle; they are slightly worse.** Registered experiment 010 (64 seeds × 3 connectome samples × 2
-   odour sources): real − shuffle on noise robustness (M2) = {h("H1", "sparse")} with a sparse
-   Kenyon-cell code, {h("H1", "literal")} with the literal (dense) code. Both are below the smallest
-   effect we said would matter (±0.02).
-2. **What helps is degree structure: keeping each projection neuron's real out-degree.** pn_out −
-   random = {h("H2", "sparse")} sparse; {h("H2", "literal")} literal. It held in every sample and both
-   odour sources.
-3. **The real pairing between a projection neuron and its out-degree helps with a sparse code only.**
-   pn_out − pn_out_perm_live = {h("H3", "sparse")} sparse; {h("H3", "literal")} literal.
-4. **These wiring results survive a more biological model** (graded APL feedback + compartment-specific
-   dopamine, experiment 011): 010 overturned: {over011}.
-5. **In the creature, neither the homeostatic dopamine rule nor the real wiring made a detectable
+1. **Real mushroom-body partners did not beat a degree-preserving shuffle; they were slightly worse.**
+   Registered experiment 010 (64 seeds × 3 connectome samples × 2 odour sources): real − shuffle on
+   noise robustness (M2) = {h("H1", "sparse")} with a sparse Kenyon-cell code, {h("H1", "literal")}
+   with the literal (dense) code. Both are below the smallest effect we said would matter (±0.02). With
+   the sparse code the deficit is carried mostly by one cell ({A["h1_worst_cell"]}):
+   {A["h1_cells_incl0"]} of {A["h1_cells_total"]} sample × source cells have CIs that include 0,
+   {"both FlyWire hemispheres are indistinguishable from 0" if A["h1_fw_right_incl0"] and A["h1_fw_left_incl0"] else "the FlyWire hemispheres differ from 0"},
+   and at the harder (deviation) task setting it was {Hd[("H1", "sparse")][3]}.
+2. **Real wiring did beat random wiring with the sparse code, by about the SESOI:** real − random
+   {A["real_random_sparse"]} sparse, {A["real_random_literal"]} literal (descriptive, not in the
+   registered family). A degree-preserving shuffle did at least as well (shuffle − random
+   {A["shuffle_random_sparse"]} sparse, {A["shuffle_random_literal"]} literal), so the benefit comes from
+   degree structure, not from which projection neuron contacts which Kenyon cell.
+3. **Keeping each projection neuron's real out-degree helps.** pn_out − random = {h("H2", "sparse")}
+   sparse; {h("H2", "literal")} literal. {h2_every}
+4. **The real pairing of a projection neuron with its out-degree helps with the sparse code only.**
+   pn_out − pn_out_perm_live = {h("H3", "sparse")} sparse; {h("H3", "literal")} literal (the point
+   estimate is negative; the exploratory 009 literal effect, {N["e009_pnout_permlive_lit"]}, did not replicate).
+5. **The sparse-code wiring results held with graded APL feedback + compartment-specific dopamine**
+   (experiment 011, sparse code only; 010 overturned: {over011}). Caveats under the 011 table.
+6. **In the creature, neither the homeostatic dopamine rule nor the real wiring made a detectable
    difference** to survival or mean energy (experiment 012, 40 seeds; smallest Holm p = {holm12:g}).
-   The confidence intervals are wide, so this is "no detectable effect", not "shown to be zero".
-6. **Brain-driven steering did not matter in the registered creature** (steering on − off, mean
-   energy {san["mean_energy"]}), and a post-hoc check shows why: under the registered steering gain the
-   learned valence does not measurably steer the body (details below).
-7. **Individuals with the same genome but different histories became measurably different, history-
-   specific individuals**, and they re-learned (slowly, incompletely) when food and toxic roles swapped.
+   By the plan's own equivalence bounds the result is **inconclusive**, not null: {v12_text}. And since
+   learned valence barely reaches behaviour under the registered constants (next point), 012 could
+   hardly have detected a state-rule effect.
+7. **Brain-driven steering did not matter in the registered creature** (steering on − off, mean
+   energy {san["mean_energy"]}); a post-hoc check shows that under the registered steering gain the
+   learned valence does not measurably steer the body (details below). We missed this before registering.
+8. **Learned odour preferences (internal valences) diverged between individuals with the same genome and
+   different histories, and re-adapted (slowly, incompletely) when food and toxic roles swapped.** Under
+   the registered constants these internal differences do not show in behaviour.
 
 ![summary](figures/summary.png)
 
 ## Expected versus what happened
 
-| question | what we expected (plans) | what happened |
+| question | expectation | what happened |
 |---|---|---|
-| Does real MB wiring beat matched fake wiring? (CLAUDE.md, the one real question) | real > shuffle > random | real < shuffle by a small margin (H1); degree-preserving wirings > random (H2) |
-| Is the 001–009 pattern robust to a second fly, a second hemisphere and a second odour set? (010) | replicate or fail visibly | H1 and H2 replicated in both code settings; H3 only with the sparse code |
-| What makes real worse than shuffle? (010 N2) | co-convergence of glomeruli or KC class structure | real ≈ n2a (keeps co-convergence exactly): {find(n2, "N2-pairing: real − n2a_coconv", "sparse")[2]} sparse, and n2a − shuffle {find(n2, "N2-coconv: n2a_coconv − shuffle", "sparse")[2]}: by the plan's rule the deficit is carried by co-convergence |
-| Does a more biological APL / dopamine change the answer? (011) | maybe | no; signs and sizes hold |
-| Does the energy-dependent dopamine rule help the pet? (002, then 012) | yes, in a world where foraging is feasible | 002: null at the floor (pets starved {N["e002_starving"]} of the time). 012: still null, now off the floor ({cm["on"][2]} of pets died) |
+| Does real MB wiring beat matched fake wiring? (CLAUDE.md, the one real question) | the project's starting hope: real > shuffle > random; the 010 plan, after 001–009, predicted real < shuffle | real < shuffle by a small margin (H1); real > random with the sparse code only; pn_out > random (H2) |
+| Is the 001–009 pattern robust to a second fly, a second hemisphere and a second odour set? (010) | replicate or fail visibly | {repl_text} |
+| What makes real worse than shuffle? (010 N2) | co-convergence of glomeruli or KC class structure | sparse: real − n2a (keeps co-convergence exactly) {find(n2, "N2-pairing: real − n2a_coconv", "sparse")[2]} and n2a − shuffle {find(n2, "N2-coconv: n2a_coconv − shuffle", "sparse")[2]}, so by the plan's rule co-convergence carries the deficit; literal: real − n2a {find(n2, "N2-pairing: real − n2a_coconv", "literal")[2]}, so there the pairing also matters. The co-convergence account holds for the pooled sparse code only |
+| Does a more biological APL / dopamine change the answer? (011) | maybe | {"no" if over011 == "no" else "yes"}, for the sparse code (see caveats) |
+| Does the energy-dependent dopamine rule help the pet? (002, then 012) | yes, in a world where foraging is feasible | 002: null at the floor (pets starved {N["e002_starving"]} of the time). 012: inconclusive, now off the floor ({cm["on"][2]} of pets died) |
 | Does the body–brain loop work? (012 sanity) | steering helps foraging | no detectable help; the registered gain is too weak to steer (exploratory) |
-| Can one owner teach a pet a like and a dislike within minutes? (WP6) | yes | the learned valences move the right way within a minute; in behaviour the dislike shows, the like does not (play app only, with a play-only steering gain) |
+| Can one owner teach a pet a like and a dislike within minutes? (WP6) | yes | the learned valences move the right way within a minute; in behaviour the dislike shows, the like does not (play app only, play-only steering gain) |
 
 ## Methods in one page
 
@@ -198,9 +314,12 @@ projection neurons, dopamine rules, readout, body, metabolism) is a rule we desi
 - **Odours.** DoOR 2.0 receptor responses mapped to glomeruli (60 odorants) and, as a second source,
   Hallem & Carlson 2006 (57 odorants not in the DoOR panel, from the DoOR.data tables).
 - **Learning model.** Binary Kenyon cells with a k-winners-take-all "APL" (sparse: 10% active; literal:
-  as the connectome input gives), dopamine-gated depression of KC→MBON weights, ratio readout. Task:
+  a fixed active fraction per sample measured once from the connectome input with random odours —
+  {lit_text}; cf. ~68% in CLAUDE.md and 5–10% in real flies), dopamine-gated depression of KC→MBON weights, ratio readout. Task:
   two odour sets, one rewarded; readout noise; metrics AULC, plateau, M2 (AUC at test noise σ = 1,
-  primary), M3 (interference). Parameters chosen on synthetic circuits before any connectome run.
+  primary), M3 (interference). Parameters chosen on synthetic circuits; one connectome smoke run (seed 7, outside the
+  confirmatory range) was seen before the 010 plan was committed, as the plan states. Secondary metrics
+  (AULC, plateau, M3 interference) for every contrast are in `reports/010/tables.md`.
 - **Controls.** random (same edge count and weights), degree-preserving shuffle (curveball), pn_out
   (keeps PN out-degree), pn_out_perm_live (permutes out-degrees among PNs with odour input), N2a (keeps
   glomerular co-convergence exactly), N2b (shuffle within KC class). Verified by computed statistics
@@ -245,11 +364,26 @@ smaller (H1 sparse {Hd[("H1", "sparse")][3]}, H2 sparse {Hd[("H2", "sparse")][3]
 
 {section(t011, "H1–H3 per model variant (M2) vs experiment 010 (kWTA, global DA)")}
 
+Caveats (from the audit, reviews/final.md): 011 used the sparse code only, so it says nothing about the
+literal results. Its H1 "sign holds" rule is an equivalence test written when the 010 run it checked
+was the deviation run (H1 ≈ 0); with the registered H1 negative, "yes" there means "within ±0.02", not
+"negative". The graded APL does not equalise KC activity across wirings (apl_comp KC mean rate:
+random {kc011["random"]}, pn_out {kc011["pn_out"]}, pn_out_perm_live {kc011["pn_out_perm_live"]}), so H2/H3 there
+are partly confounded with activity level. The secondary AULC for H2 under apl_comp is
+{aulc011_h2}.
+
 ## Experiment 012: the creature
 
 {section(t012, "Condition means")}
 
 {section(t012, "Confirmatory family")}
+
+The S2 control was matched to the `on` run's mean reward dopamine **in expectation, not in
+realisation**: its quadratic was rescaled at the `on` run's pre-meal energies, but the generic run
+meets other energies and is clipped at 0. Of {A["gen_n"]} seeds with meals, the generic rule gave exactly
+zero reward dopamine in {A["gen_zero"]} and less than half of the `on` amount in {A["gen_half"]} (median
+ratio {A["gen_median"]}; the `const` control matched exactly, median ratio {A["const_ratio"]}). So S2 is a
+weaker rule-6 control than intended. This is the plan as registered; a better match would need a new plan.
 
 Sanity check, not a headline (steering on − off):
 
@@ -258,6 +392,11 @@ Sanity check, not a headline (steering on − off):
 Individuality (pre-specified secondary):
 
 {ind}
+
+The CIs above resample pairs of individuals, which are not independent. Resampling individuals (and
+whole same-history groups) instead gives different histories {A["ind_cluster_hist"]}, same history
+{A["ind_cluster_noise"]}, difference {A["ind_cluster_diff"]}: {"still above 0, but much less precise" if A["ind_cluster_diff_pos"] else "no longer clearly above 0"}.
+These are internal valences; the steering results below mean they barely reach behaviour.
 
 Adaptation to a swap of food and toxic roles (pre-specified secondary):
 
@@ -273,6 +412,13 @@ learned valence to ±0.3 and places a smell 1 body length to the side ({n_steer}
 |---|---|---|---|
 | registered (K = 25) | {steer[(25.0, 0.3, True)]} | {steer[(25.0, -0.3, True)]} | {steer[(25.0, 0.3, False)]} |
 | 4× (K = 100) | {steer[(100.0, 0.3, True)]} | {steer[(100.0, -0.3, True)]} | — |
+
+Paired with steering off (same seed and odorant), the change in distance is: registered gain, valence
++0.3 {A["steer_paired_25_+0.3"]}, −0.3 {A["steer_paired_25_-0.3"]}; 4× gain, +0.3 {A["steer_paired_100_+0.3"]},
+−0.3 {A["steer_paired_100_-0.3"]}. So at 4× a positive valence reduces the drift away from the smell
+(the creature still ends farther away than it started), while avoidance is not distinguishable from
+steering off. A first version of the script used odour index 0, which is water (no receptor response);
+it was discarded and the three odorants above were chosen by name before the rerun.
 
 Under the registered gain the creature's learned preferences do not reach its behaviour, so 012 tested
 the dopamine rule and the wiring mostly through what the creature bumps into, not through what it seeks.
@@ -295,6 +441,10 @@ minutes): learned valence {teach["liked"]} (praised) {last[teach["liked"]]:+.3f}
 Approach test with the smell 1 BL away, change in distance before → after teaching: praised
 {nb[teach["liked"]]:+.2f} → {na[teach["liked"]]:+.2f}, scolded {nb[teach["disliked"]]:+.2f} → {na[teach["disliked"]]:+.2f},
 control {nb[teach["control"]]:+.2f} → {na[teach["control"]]:+.2f} BL (one pet, {teach["approach_near"]["reps"]} copies; a demonstration, not a statistic).
+A first test with the smell 2.5 BL away (outside most of the plume) showed no difference for any smell
+(after teaching: {", ".join(f"{teach['approach_after'][o]:+.2f}" for o in (teach["liked"], teach["disliked"], teach["control"]))} BL); the 1 BL test was chosen after
+seeing it. Note the pattern differs from the forced-valence check above (there attraction showed and
+avoidance did not); with one pet and 8 copies neither pattern is established.
 
 ![teaching](figures/play_teach.png)
 
@@ -310,9 +460,12 @@ These shaped the confirmatory plans; they are exploratory (one sample, one task 
 
 ## What is not supported
 
-- That real fly wiring is "better" for learning: it was not, in any model we built.
-- That the pet's internal-state rule matters: not detected in 002 or 012.
+- That the real fly's specific PN→KC partners help learning: they did not beat a degree-preserving
+  shuffle in any model we built. (Real did beat random wiring with the sparse code, but no more than the
+  shuffle did.)
+- That the pet's internal-state rule matters: not detected in 002 or 012, and 012 was underpowered for it.
 - That the creature's brain controls its foraging: not under the registered constants.
+- That individuals differ in behaviour: their learned valences differ; their behaviour was not shown to.
 - Anything about experience, consciousness, or being alive. The "life criteria" above are behavioural
   tests of a simulation.
 - Generality beyond our model: binary KCs, one task family, designed odour mapping, a designed body.

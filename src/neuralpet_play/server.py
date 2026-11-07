@@ -183,6 +183,9 @@ def make_handler(app):
         do_HEAD = do_GET
 
         def do_POST(self):
+            # Any early refusal below leaves the body unread; never reuse such a connection, or the body
+            # would be parsed as a second request (HTTP/1.1 desync, reviews/final.md #14).
+            self.close_connection = True
             if not self.guard_host():
                 return
             sid, csrf = self.session()
@@ -212,6 +215,7 @@ def make_handler(app):
                 return self.json(dict(error=err), 400)
             app.game.act(a)
             app.prefs_t = 0.0
+            self.close_connection = False                   # body fully read: keep-alive is safe again
             self.json(dict(ok=True))
 
         def do_PUT(self):

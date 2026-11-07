@@ -11,40 +11,51 @@ projection neurons, dopamine rules, readout, body, metabolism) is a rule we desi
 
 ## Headline findings
 
-1. **Real mushroom-body partners do not help associative learning compared with a degree-preserving
-   shuffle; they are slightly worse.** Registered experiment 010 (64 seeds × 3 connectome samples × 2
-   odour sources): real − shuffle on noise robustness (M2) = -0.0076 [-0.0124, -0.0027] (d_z -0.38, Holm p 0.0067; replicated (smaller than SESOI)) with a sparse
-   Kenyon-cell code, -0.0119 [-0.0148, -0.0089] (d_z -0.98, Holm p 3.6e-10; replicated (smaller than SESOI)) with the literal (dense) code. Both are below the smallest
-   effect we said would matter (±0.02).
-2. **What helps is degree structure: keeping each projection neuron's real out-degree.** pn_out −
-   random = 0.0287 [0.0207, 0.0368] (d_z 0.86, Holm p 1.7e-08; replicated) sparse; 0.0139 [0.0074, 0.0205] (d_z 0.52, Holm p 0.00031; replicated (smaller than SESOI)) literal. It held in every sample and both
-   odour sources.
-3. **The real pairing between a projection neuron and its out-degree helps with a sparse code only.**
-   pn_out − pn_out_perm_live = 0.0187 [0.0106, 0.0269] (d_z 0.55, Holm p 0.00019; replicated (smaller than SESOI)) sparse; -0.0076 [-0.0153, -0.0002] (d_z -0.24, Holm p 0.057; not replicated: equivalent to 0 (90% CI within ±SESOI)) literal.
-4. **These wiring results survive a more biological model** (graded APL feedback + compartment-specific
-   dopamine, experiment 011): 010 overturned: no.
-5. **In the creature, neither the homeostatic dopamine rule nor the real wiring made a detectable
+1. **Real mushroom-body partners did not beat a degree-preserving shuffle; they were slightly worse.**
+   Registered experiment 010 (64 seeds × 3 connectome samples × 2 odour sources): real − shuffle on
+   noise robustness (M2) = -0.0076 [-0.0124, -0.0027] (d_z -0.38, Holm p 0.0067; replicated (smaller than SESOI)) with a sparse Kenyon-cell code, -0.0119 [-0.0148, -0.0089] (d_z -0.98, Holm p 3.6e-10; replicated (smaller than SESOI))
+   with the literal (dense) code. Both are below the smallest effect we said would matter (±0.02). With
+   the sparse code the deficit is carried mostly by one cell (hemibrain × door: -0.0405 [-0.0538, -0.0278]):
+   4 of 6 sample × source cells have CIs that include 0,
+   both FlyWire hemispheres are indistinguishable from 0,
+   and at the harder (deviation) task setting it was -0.0007 [-0.0033, 0.0020].
+2. **Real wiring did beat random wiring with the sparse code, by about the SESOI:** real − random
+   +0.0202 [+0.0114, +0.0290] sparse, -0.0026 [-0.0093, +0.0043] literal (descriptive, not in the
+   registered family). A degree-preserving shuffle did at least as well (shuffle − random
+   +0.0278 [+0.0200, +0.0355] sparse, +0.0093 [+0.0029, +0.0157] literal), so the benefit comes from
+   degree structure, not from which projection neuron contacts which Kenyon cell.
+3. **Keeping each projection neuron's real out-degree helps.** pn_out − random = 0.0287 [0.0207, 0.0368] (d_z 0.86, Holm p 1.7e-08; replicated)
+   sparse; 0.0139 [0.0074, 0.0205] (d_z 0.52, Holm p 0.00031; replicated (smaller than SESOI)) literal. It held (CI above 0) in every sample and both odour sources, in both code settings.
+4. **The real pairing of a projection neuron with its out-degree helps with the sparse code only.**
+   pn_out − pn_out_perm_live = 0.0187 [0.0106, 0.0269] (d_z 0.55, Holm p 0.00019; replicated (smaller than SESOI)) sparse; -0.0076 [-0.0153, -0.0002] (d_z -0.24, Holm p 0.057; not replicated: equivalent to 0 (90% CI within ±SESOI)) literal (the point
+   estimate is negative; the exploratory 009 literal effect, +0.031 [+0.011, +0.052], did not replicate).
+5. **The sparse-code wiring results held with graded APL feedback + compartment-specific dopamine**
+   (experiment 011, sparse code only; 010 overturned: no). Caveats under the 011 table.
+6. **In the creature, neither the homeostatic dopamine rule nor the real wiring made a detectable
    difference** to survival or mean energy (experiment 012, 40 seeds; smallest Holm p = 0.85).
-   The confidence intervals are wide, so this is "no detectable effect", not "shown to be zero".
-6. **Brain-driven steering did not matter in the registered creature** (steering on − off, mean
-   energy 0.020 [-0.031, 0.076]), and a post-hoc check shows why: under the registered steering gain the
-   learned valence does not measurably steer the body (details below).
-7. **Individuals with the same genome but different histories became measurably different, history-
-   specific individuals**, and they re-learned (slowly, incompletely) when food and toxic roles swapped.
+   By the plan's own equivalence bounds the result is **inconclusive**, not null: the S1/S2 CIs are up to 2.2× (energy) and 3.3× (survival) wider than the ±0.02 / ±60 s equivalence bounds; the plan's rule for "the state rule matters" (S1 and S2 significant, same sign) is not met; nor is the rule for "real wiring helps the pet" (S3). And since
+   learned valence barely reaches behaviour under the registered constants (next point), 012 could
+   hardly have detected a state-rule effect.
+7. **Brain-driven steering did not matter in the registered creature** (steering on − off, mean
+   energy 0.020 [-0.031, 0.076]); a post-hoc check shows that under the registered steering gain the
+   learned valence does not measurably steer the body (details below). We missed this before registering.
+8. **Learned odour preferences (internal valences) diverged between individuals with the same genome and
+   different histories, and re-adapted (slowly, incompletely) when food and toxic roles swapped.** Under
+   the registered constants these internal differences do not show in behaviour.
 
 ![summary](figures/summary.png)
 
 ## Expected versus what happened
 
-| question | what we expected (plans) | what happened |
+| question | expectation | what happened |
 |---|---|---|
-| Does real MB wiring beat matched fake wiring? (CLAUDE.md, the one real question) | real > shuffle > random | real < shuffle by a small margin (H1); degree-preserving wirings > random (H2) |
-| Is the 001–009 pattern robust to a second fly, a second hemisphere and a second odour set? (010) | replicate or fail visibly | H1 and H2 replicated in both code settings; H3 only with the sparse code |
-| What makes real worse than shuffle? (010 N2) | co-convergence of glomeruli or KC class structure | real ≈ n2a (keeps co-convergence exactly): 0.0001 [-0.0020, 0.0022] sparse, and n2a − shuffle -0.0077 [-0.0122, -0.0033]: by the plan's rule the deficit is carried by co-convergence |
-| Does a more biological APL / dopamine change the answer? (011) | maybe | no; signs and sizes hold |
-| Does the energy-dependent dopamine rule help the pet? (002, then 012) | yes, in a world where foraging is feasible | 002: null at the floor (pets starved 0.77 of the time). 012: still null, now off the floor (0.525 [0.375, 0.675] of pets died) |
+| Does real MB wiring beat matched fake wiring? (CLAUDE.md, the one real question) | the project's starting hope: real > shuffle > random; the 010 plan, after 001–009, predicted real < shuffle | real < shuffle by a small margin (H1); real > random with the sparse code only; pn_out > random (H2) |
+| Is the 001–009 pattern robust to a second fly, a second hemisphere and a second odour set? (010) | replicate or fail visibly | H1: sparse replicated, literal replicated; H2: sparse replicated, literal replicated; H3: sparse replicated, literal not replicated |
+| What makes real worse than shuffle? (010 N2) | co-convergence of glomeruli or KC class structure | sparse: real − n2a (keeps co-convergence exactly) 0.0001 [-0.0020, 0.0022] and n2a − shuffle -0.0077 [-0.0122, -0.0033], so by the plan's rule co-convergence carries the deficit; literal: real − n2a -0.0034 [-0.0052, -0.0017], so there the pairing also matters. The co-convergence account holds for the pooled sparse code only |
+| Does a more biological APL / dopamine change the answer? (011) | maybe | no, for the sparse code (see caveats) |
+| Does the energy-dependent dopamine rule help the pet? (002, then 012) | yes, in a world where foraging is feasible | 002: null at the floor (pets starved 0.77 of the time). 012: inconclusive, now off the floor (0.525 [0.375, 0.675] of pets died) |
 | Does the body–brain loop work? (012 sanity) | steering helps foraging | no detectable help; the registered gain is too weak to steer (exploratory) |
-| Can one owner teach a pet a like and a dislike within minutes? (WP6) | yes | the learned valences move the right way within a minute; in behaviour the dislike shows, the like does not (play app only, with a play-only steering gain) |
+| Can one owner teach a pet a like and a dislike within minutes? (WP6) | yes | the learned valences move the right way within a minute; in behaviour the dislike shows, the like does not (play app only, play-only steering gain) |
 
 ## Methods in one page
 
@@ -54,9 +65,12 @@ projection neurons, dopamine rules, readout, body, metabolism) is a rule we desi
 - **Odours.** DoOR 2.0 receptor responses mapped to glomeruli (60 odorants) and, as a second source,
   Hallem & Carlson 2006 (57 odorants not in the DoOR panel, from the DoOR.data tables).
 - **Learning model.** Binary Kenyon cells with a k-winners-take-all "APL" (sparse: 10% active; literal:
-  as the connectome input gives), dopamine-gated depression of KC→MBON weights, ratio readout. Task:
+  a fixed active fraction per sample measured once from the connectome input with random odours —
+  fw_right 0.55, fw_left 0.57, hemibrain 0.61; cf. ~68% in CLAUDE.md and 5–10% in real flies), dopamine-gated depression of KC→MBON weights, ratio readout. Task:
   two odour sets, one rewarded; readout noise; metrics AULC, plateau, M2 (AUC at test noise σ = 1,
-  primary), M3 (interference). Parameters chosen on synthetic circuits before any connectome run.
+  primary), M3 (interference). Parameters chosen on synthetic circuits; one connectome smoke run (seed 7, outside the
+  confirmatory range) was seen before the 010 plan was committed, as the plan states. Secondary metrics
+  (AULC, plateau, M3 interference) for every contrast are in `reports/010/tables.md`.
 - **Controls.** random (same edge count and weights), degree-preserving shuffle (curveball), pn_out
   (keeps PN out-degree), pn_out_perm_live (permutes out-degrees among PNs with odour input), N2a (keeps
   glomerular co-convergence exactly), N2b (shuffle within KC class). Verified by computed statistics
@@ -146,6 +160,14 @@ smaller (H1 sparse -0.0007 [-0.0033, 0.0020], H2 sparse 0.0083 [0.0045, 0.0121],
 
 **010 conclusion overturned by apl_comp: no.**
 
+Caveats (from the audit, reviews/final.md): 011 used the sparse code only, so it says nothing about the
+literal results. Its H1 "sign holds" rule is an equivalence test written when the 010 run it checked
+was the deviation run (H1 ≈ 0); with the registered H1 negative, "yes" there means "within ±0.02", not
+"negative". The graded APL does not equalise KC activity across wirings (apl_comp KC mean rate:
+random 0.0674, pn_out 0.0754, pn_out_perm_live 0.0774), so H2/H3 there
+are partly confounded with activity level. The secondary AULC for H2 under apl_comp is
+-0.0051 [-0.0156, 0.0051].
+
 ## Experiment 012: the creature
 
 | cond | survival s | died | mean energy | frac time E>0 | meals | toxic hits | valence gap food−toxic |
@@ -165,6 +187,13 @@ smaller (H1 sparse -0.0007 [-0.0033, 0.0020], H2 sparse 0.0083 [0.0045, 0.0121],
 | S3 | on − shuffle_on | survival_s | -179.4850 [-416.2800, 44.8806] | -0.24 | 0.14 | 0.85 |
 | S3 | on − shuffle_on | mean_energy | -0.0199 [-0.0681, 0.0253] | -0.13 | 0.41 | 1 |
 
+The S2 control was matched to the `on` run's mean reward dopamine **in expectation, not in
+realisation**: its quadratic was rescaled at the `on` run's pre-meal energies, but the generic run
+meets other energies and is clipped at 0. Of 36 seeds with meals, the generic rule gave exactly
+zero reward dopamine in 9 and less than half of the `on` amount in 10 (median
+ratio 0.92; the `const` control matched exactly, median ratio 1.000). So S2 is a
+weaker rule-6 control than intended. This is the plan as registered; a better match would need a new plan.
+
 Sanity check, not a headline (steering on − off):
 
 | metric | on − steer_off |
@@ -179,6 +208,11 @@ Individuality (pre-specified secondary):
 - 20 individuals with different histories; 20 extra individuals sharing 5 histories but with other noise streams.
 - Mean pairwise distance of preference vectors: different histories 0.3271 [0.3081, 0.3468]; same history, other noise 0.2143 [0.1782, 0.2554].
 - Correlation of an individual's preferences with its own history (food +1, toxic −1, absent 0): 0.708 [0.628, 0.775]; with other individuals' histories (seed-shuffled baseline): 0.018 [-0.027, 0.064]; difference 0.690 [0.593, 0.774].
+
+The CIs above resample pairs of individuals, which are not independent. Resampling individuals (and
+whole same-history groups) instead gives different histories [0.261, 0.393], same history
+[0.153, 0.302], difference +0.113 [0.008, 0.207]: still above 0, but much less precise.
+These are internal valences; the steering results below mean they barely reach behaviour.
 
 Adaptation to a swap of food and toxic roles (pre-specified secondary):
 
@@ -198,6 +232,13 @@ learned valence to ±0.3 and places a smell 1 body length to the side (48 runs o
 | registered (K = 25) | +1.40 [+1.14, +1.67] | +1.35 [+1.12, +1.58] | +1.34 [+1.02, +1.65] |
 | 4× (K = 100) | +0.50 [+0.25, +0.78] | +1.54 [+1.37, +1.69] | — |
 
+Paired with steering off (same seed and odorant), the change in distance is: registered gain, valence
++0.3 +0.07 [-0.30, +0.43], −0.3 +0.01 [-0.19, +0.23]; 4× gain, +0.3 -0.84 [-1.24, -0.45],
+−0.3 +0.20 [-0.09, +0.49]. So at 4× a positive valence reduces the drift away from the smell
+(the creature still ends farther away than it started), while avoidance is not distinguishable from
+steering off. A first version of the script used odour index 0, which is water (no receptor response);
+it was discarded and the three odorants above were chosen by name before the rerun.
+
 Under the registered gain the creature's learned preferences do not reach its behaviour, so 012 tested
 the dopamine rule and the wiring mostly through what the creature bumps into, not through what it seeks.
 The synthetic pilot had already shown no steering benefit (round 7), and we registered the constants
@@ -206,12 +247,16 @@ with the gain fixed by a chemotaxis criterion is the obvious next step (`docs/OP
 
 ## Operational life criteria
 
+**When the criteria were set.** The 012 plan pre-specified "met" rules only for individual divergence and
+adaptation. The self-maintenance and precariousness verdicts below were defined after the 012 results
+(this page was first committed after them) and should be read as post hoc descriptions.
+
 | criterion | operational test (experiment 012, PLAN.md) | verdict |
 |---|---|---|
-| **Self-maintenance**: keeps its internal variable away from the lethal bound by its own actions | fraction of life with energy > 0 and mean energy in a world where energy drains with effort; compared across state rules (S1, S2) | **met, but not specific.** Pets forage and keep energy above zero most of the time, yet the homeostatic dopamine rule did no better than a constant or a size-matched generic rule (S1, S2 null). Self-maintenance comes from the fixed body/world rules plus learning, not from the state rule we built. |
-| **Precariousness / mortality**: can die, and dying depends on what it does | deaths within 2400 s with mortality on; survival time | **met (in the weak sense).** About half or more of the pets die within the life, so survival is not at ceiling. Whether dying depends on the brain is open: no condition (state rule, wiring, steering off) changed survival detectably. |
-| **Individual divergence**: one genome, different histories → different, history-specific individuals | preference vectors of 20 individuals with different histories vs individuals sharing a history but not noise; correlation with own history vs a seed-shuffled baseline | **met.** Preferences track the individual's own history far above the shuffled baseline, and different histories give more different individuals than same history with different noise. |
-| **Adaptation**: changes its learned behaviour when the world changes | food and toxic roles swap halfway; does the learned gap move towards the new roles? | **met, partly.** The gap moves towards the new roles (CI of the change above 0) but only reaches about zero by the end of the life: re-learning is slow and incomplete. |
+| **Self-maintenance**: keeps its internal variable away from the lethal bound by its own actions | fraction of life with energy > 0 and mean energy in a world where energy drains with effort; compared across state rules (S1, S2) | **met, but not specific (post hoc).** Pets keep energy above zero most of the time, yet the homeostatic dopamine rule did no detectably better than a constant rule or a generic substitute (S1, S2 inconclusive; the generic substitute was matched in expectation, not in realisation). What maintains energy here is the fixed body/world rules; no learning-off condition was run, so the role of learning is untested. |
+| **Precariousness / mortality**: can die, and dying depends on what it does | deaths within 2400 s with mortality on; survival time | **met in the weak sense (post hoc).** About half or more of the pets die within the life, so survival is not at ceiling. Whether dying depends on the brain is open: no condition (state rule, wiring, steering off) changed survival detectably. |
+| **Individual divergence**: one genome, different histories → different, history-specific learned preferences | preference vectors of 20 individuals with different histories vs individuals sharing a history but not noise; correlation with own history vs a seed-shuffled baseline | **met for internal valences (pre-specified rule).** Learned preferences track the individual's own history far above the shuffled baseline, and different histories give more different preference vectors than same history with different noise (still true, with much wider CIs, when individuals rather than pairs are resampled). These are internal valences: under the registered steering gain they barely reach behaviour, so behavioural individuality is not shown. |
+| **Adaptation**: its learned preferences change when the world changes | food and toxic roles swap halfway; does the learned gap move towards the new roles? | **met for internal valences, partly (pre-specified rule).** The gap moves towards the new roles (CI of the change above 0) but only reaches about zero by the end of the life: re-learning is slow and incomplete. Not shown in behaviour, for the same reason as above. |
 | Brain-driven behaviour (sanity, not a life criterion) | steering on vs off | **not met.** Steering off made no detectable difference to meals, energy or survival. Under the registered steering gain the learned valence hardly steers the body (see the OPEN_QUESTIONS entry of 2026-11-08). |
 | Reproduction | — | **untested** (future work). |
 | Evolution / heredity | — | **untested** (future work). |
@@ -227,6 +272,10 @@ minutes): learned valence isopentyl acetate (praised) +0.130, benzaldehyde
 Approach test with the smell 1 BL away, change in distance before → after teaching: praised
 +0.17 → +0.67, scolded +0.17 → +1.42,
 control +0.17 → +0.69 BL (one pet, 8 copies; a demonstration, not a statistic).
+A first test with the smell 2.5 BL away (outside most of the plume) showed no difference for any smell
+(after teaching: +0.59, +0.60, +0.60 BL); the 1 BL test was chosen after
+seeing it. Note the pattern differs from the forced-valence check above (there attraction showed and
+avoidance did not); with one pet and 8 copies neither pattern is established.
 
 ![teaching](figures/play_teach.png)
 
@@ -242,9 +291,12 @@ These shaped the confirmatory plans; they are exploratory (one sample, one task 
 
 ## What is not supported
 
-- That real fly wiring is "better" for learning: it was not, in any model we built.
-- That the pet's internal-state rule matters: not detected in 002 or 012.
+- That the real fly's specific PN→KC partners help learning: they did not beat a degree-preserving
+  shuffle in any model we built. (Real did beat random wiring with the sparse code, but no more than the
+  shuffle did.)
+- That the pet's internal-state rule matters: not detected in 002 or 012, and 012 was underpowered for it.
 - That the creature's brain controls its foraging: not under the registered constants.
+- That individuals differ in behaviour: their learned valences differ; their behaviour was not shown to.
 - Anything about experience, consciousness, or being alive. The "life criteria" above are behavioural
   tests of a simulation.
 - Generality beyond our model: binary KCs, one task family, designed odour mapping, a designed body.

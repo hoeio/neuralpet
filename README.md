@@ -11,17 +11,19 @@ a designed rule, written down in `docs/ADAPTERS.md` before the runs that used it
 
 ## What we found (full report: [reports/FINAL.md](reports/FINAL.md))
 
-- **Real mushroom-body partners did not help dopamine-gated learning.** Against a degree-preserving
-  shuffle they were slightly worse (registered, 3 connectome samples × 2 odour datasets, 64 seeds;
-  effect smaller than the threshold we set for "matters").
+- **Real mushroom-body partners did not beat a degree-preserving shuffle** in dopamine-gated learning;
+  they were slightly worse (registered, 3 connectome samples × 2 odour datasets, 64 seeds; smaller than
+  the threshold we set for "matters", and carried mostly by the hemibrain sample). Real wiring did beat
+  random wiring with a sparse code, but no more than the shuffle did.
 - **Degree structure did help:** keeping each projection neuron's real out-degree beat random wiring in
   every sample and odour set. The real neuron ↔ out-degree pairing helped with a sparse Kenyon-cell code
   only.
-- These wiring results held with graded APL feedback and compartment-specific dopamine.
+- The sparse-code wiring results held with graded APL feedback and compartment-specific dopamine.
 - **In the creature, the homeostatic dopamine rule and the real wiring made no detectable difference**
-  to survival or energy (wide CIs). Under the registered constants the learned preferences barely steer
+  to survival or energy; the CIs are too wide to call it a null (inconclusive by the plan's own bounds). Under the registered constants the learned preferences barely steer
   the body; we found this post hoc and report it as a design miss.
-- Pets with the same genome and different histories became distinct, history-specific individuals.
+- Pets with the same genome and different histories ended up with different, history-specific learned
+  odour preferences (internal valences; not shown in behaviour).
 
 Exploratory steps, deviations and null results are all in the report.
 

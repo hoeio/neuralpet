@@ -122,5 +122,5 @@
   "linalool": 0.6945884689789714
  },
  "pet_time_s": 120.0,
- "note": "approach = change in head distance to a toy of that smell over 40 s (negative = moved closer), mean of 4 copies"
+ "note": "approach_* = change in head distance to a toy of that smell (negative = moved closer); approach_before/after: 2.5 BL, 40 s, mean of 4 copies; approach_near_*: settings in approach_near"
 }
